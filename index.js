@@ -67,3 +67,23 @@ console.log('After: ' + testArr);
 console.log('this is a test commit to 2nd javascript playground');
 
 // TEST COMMENT AT 4:38PM 1/25/21
+
+// First Button Creation! 5:15PM
+
+// 1. Create the button
+var button = document.createElement("button");
+button.innerHTML = "Click here for secret message";
+
+// 2. Append somewhere
+var body = document.getElementsByTagName("body")[0];
+body.appendChild(button);
+
+// 3. Add event handler
+button.addEventListener ("click", function() {
+  alert("I love you!");
+});
+
+/* Read 
+
+https://css-tricks.com/use-button-element/
+*/
