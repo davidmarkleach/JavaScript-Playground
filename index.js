@@ -64,3 +64,4 @@ let testArr = [1,2,3,4,5];
 console.log('before: ' + JSON.stringify(testArr) +'\n'+ testArr)
 console.log(nextInLine(testArr, 6));
 console.log('After: ' + testArr);
+console.log('third commit test');
