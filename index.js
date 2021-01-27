@@ -83,6 +83,24 @@ button.addEventListener ("click", function() {
   alert("I love you!");
 });
 
+
+
+button.addEventListener("click"),
+	function () {
+		alert("formatting test");
+	};
+
+button.addEventListener("click"),
+	function () {
+		alert("does this cause an error");
+	};
+
+button.addEventListener("click"),
+	function () {
+		alert("shouldn't this be single quotes");
+    };
+
+
 /* Read 
 
 https://css-tricks.com/use-button-element/
