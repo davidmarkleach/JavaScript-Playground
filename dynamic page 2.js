@@ -42,12 +42,14 @@ function setBgGreet() {
 		document.body.style.backgroundImage =
 			"url('https://img.huffingtonpost.com/asset/5e0f68ec2500003b1998fb2e.jpeg?cache=YqiWjN9UVt&ops=1778_1000')";
 		document.body.style.backgroundPosition = "Center";
+		greeting.textContent = "Good Morning";
 
 	} else if (hour < 18) {
 		//Afternoon
 		document.body.style.backgroundImage =
 			"url('https://wallpapercave.com/wp/wp7903231.jpg')";		
 		document.body.style.backgroundPosition = "Center";
+		greeting.textContent = "Good Afternoon";
 
 	} else {
 		//Evening
