@@ -8,7 +8,10 @@
 	</head>
 
 	<body>
-		<video autoplay muted loop id="myVideo">
+		<div class="video1">
+
+		
+		<video autoplay muted loop playsinline id="myVideo">
 			<source src="Kids on Spinning Swing.mp4" type="video/mp4" />
 		</video>
 
@@ -27,7 +30,29 @@
 
 			</ul>
 		</div>
-		
+		</div>
+
+		<!-- Vimeo Player Test
+		<div class="video2">
+			<iframe src="https://player.vimeo.com/video/506783661?background=1&autoplay=1&loop=1&autopause=0&muted=1" width="100%" height="100%" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>		
+		</div>
+
+		<div id="myVideo"></div>
+		<script src="https://player.vimeo.com/api/player.js"></script>
+		<script>
+			var options = {
+				url: 'https://vimeo.com/506810942/50fc7aab57',
+				width: 800
+			};
+			
+			var videoPlayer = new Vimeo.Player('myVideo', options);
+
+			videoPlayer.on('play', function() {
+				console.log('Played the video');
+				});
+			
+		</script>
+	-->
 		<script src="mobile video page 3.js"></script>
 	</body>
 </html>
