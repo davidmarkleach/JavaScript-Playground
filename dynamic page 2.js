@@ -1,10 +1,9 @@
 //DOM Elements
 
-const time = document.getElementById('time'),
-	greeting = document.getElementById('greeting'),
-	name = document.getElementById('name'),
-	focus = document.getElementById('focus');
-
+const time = document.getElementById("time"),
+	greeting = document.getElementById("greeting"),
+	name = document.getElementById("name"),
+	focus = document.getElementById("focus");
 
 // Show Time
 
@@ -13,54 +12,58 @@ function showTime() {
 		hour = today.getHours(),
 		min = today.getMinutes(),
 		sec = today.getSeconds();
-	
+
 	//SET AM or PM
-	const amPm = hour >= 12 ? 'PM' : 'AM';
+	const amPm = hour >= 12 ? "PM" : "AM";
 
 	// 12hr Format
 	hour = hour % 12 || 12;
 
 	// Output Time
-	time.innerHTML = `${hour}<span>:</span>${addZero(min)}<span>:</span>${addZero(sec)}`;
+	time.innerHTML = `${hour}<span>:</span>${addZero(min)}<span>:</span>${addZero(
+		sec
+	)}`;
 
 	setTimeout(showTime, 1000);
-};
+}
 
 //Add Zeros
 
 function addZero(n) {
-	return (parseInt(n, 10) < 10 ? '0' : '') + n;
-};
+	return (parseInt(n, 10) < 10 ? "0" : "") + n;
+}
 
 // Set Background and Greeting
 function setBgGreet() {
 	let today = new Date(),
 		hour = today.getHours();
-	
+
 	if (hour < 12) {
 		//Morning
 		document.body.style.backgroundImage =
 			"url('https://img.huffingtonpost.com/asset/5e0f68ec2500003b1998fb2e.jpeg?cache=YqiWjN9UVt&ops=1778_1000')";
 		document.body.style.backgroundPosition = "Center";
+		document.body.style.backgroundRepeat = "no-repeat";
+		document.body.style.backgroundSize = "cover";
 		greeting.textContent = "Good Morning";
-
+		document.body.style.textShadow = "2px 2px 3px white";
 	} else if (hour < 18) {
 		//Afternoon
 		document.body.style.backgroundImage =
-			"url('https://wallpapercave.com/wp/wp7903231.jpg')";		
+			"url('https://wallpapercave.com/wp/wp7903231.jpg')";
 		document.body.style.backgroundPosition = "Center";
+		document.body.style.backgroundRepeat = "no-repeat";
+		document.body.style.backgroundSize = "cover";
 		greeting.textContent = "Good Afternoon";
-
 	} else {
 		//Evening
 		document.body.style.backgroundImage =
 			"url('https://cutewallpaper.org/21/night-sky-wallpaper-4k/Night-sky-stars-and-comet-Wallpaper-4k-Ultra-HD-ID3036.jpg')";
-		document.body.style.backgroundPosition = 'Center'
+		document.body.style.backgroundPosition = "Center";
 		document.body.style.color = "white";
-		greeting.textContent = 'Good Evening';
+		greeting.textContent = "Good Evening";
 	}
 }
-
 
 //Run
 showTime();
