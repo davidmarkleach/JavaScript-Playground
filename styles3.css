@@ -1,6 +1,8 @@
 * {
 	padding: 0;
 	margin: 0;
+	box-sizing: border-box;
+
 }
 
 /* Style the video: 100% width and height to cover the entire window */
