@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
+		<title>Background Replacement</title>
 
 		<style>
 			* {
@@ -12,7 +12,7 @@
 
 			.image-preview {
 				width: 100vw;
-				min-height: 800px;
+				height: 100vh;
 				border: 2px solid lightgrey;
 				margin-top: 2px;
 				background-image: url("Squad Posing3.png");
@@ -25,6 +25,13 @@
 				font-weight: bold;
 				color: lightgrey;
 			}
+
+			@media (max-width: 800px) {
+				.image-preview {
+					height: 40vh;
+				}
+			}
+
 
 			.image-preview__image {
 				display: none;
@@ -54,8 +61,7 @@
 		<input type="file" name="inpFile" id="inpFile" />
 		<div class="image-preview" id="imagePreview">
 			<img src="" alt="Image Preview" class="image-preview__image" />
-			<span class="image-preview__default-text"
-				>Your Background Image Here</span
+			<span class="image-preview__default-text">Your Background Image Here</span
 			>
 		</div>
 
@@ -79,7 +85,9 @@
 
 					previewDefaultText.style.display = "none";
 					previewImage.style.display = "block";
-					previewImage.style.width = "100vw";
+					//previewImage.style.objectFit = "cover";
+					previewImage.style.height = "100%";
+					console.log(previewImage.height);
 
 					reader.addEventListener("load", function () {
 						previewImage.setAttribute("src", this.result);
