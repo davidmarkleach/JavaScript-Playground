@@ -6,13 +6,17 @@
 		<title>Document</title>
 
 		<style>
+			* {
+				margin: 0;
+			}
+
 			.image-preview {
-				width: 300px;
+				width: 100vw;
 				min-height: 800px;
 				border: 2px solid lightgrey;
 				margin-top: 2px;
-				background-image: url("Stainless Steel Water Bottle.jpg");
-				background-position: 47% center;
+				background-image: url("Squad Posing3.png");
+				background-position: bottom left;
 				background-repeat: no-repeat;
 				display: flex;
 				align-items: center;
@@ -24,16 +28,34 @@
 			.image-preview__image {
 				display: none;
 				width: 100%;
+				z-index: -1;
+			}
+			ul {
+				list-style: none;
+				padding: 0;
+			}
+			li {
+				display: inline-block;
+				padding: 5px;
 			}
 		</style>
 	</head>
 
 	<body>
+				<div class="navbar">
+			<ul>
+				<li><a href="index.html">Page 1</a></li>
+				<li><a href="page2.html">Page 2</a></li>
+				<li><a href="page3.html">Page 3</a></li>
+
+			</ul>
 		<h1>Image Preview on File Uploads</h1>
 		<input type="file" name="inpFile" id="inpFile" />
 		<div class="image-preview" id="imagePreview">
 			<img src="" alt="Image Preview" class="image-preview__image" />
-			<span class="image-preview__default-text">Your Logo Here</span>
+			<span class="image-preview__default-text"
+				>Your Background Image Here</span
+			>
 		</div>
 
 		<script>
@@ -56,7 +78,7 @@
 
 					previewDefaultText.style.display = "none";
 					previewImage.style.display = "block";
-					previewImage.style.width = "175px";
+					previewImage.style.width = "100vw";
 
 					reader.addEventListener("load", function () {
 						previewImage.setAttribute("src", this.result);
