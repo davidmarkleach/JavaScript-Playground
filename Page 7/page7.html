@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>5 Color Mini Palette Watch — OLED Edition</title>
+		<link rel="stylesheet" href="page7styles.css" />
+	</head>
+	<body>
+		<header class="store-header">
+			<span class="store-name">BLUE STAR CRAFTS STORE</span>
+		</header>
+
+		<main class="product-layout">
+			<!-- Left: Gallery -->
+			<section class="product-gallery">
+				<div class="watch-display" data-view="front-open">
+					<!-- Strap top -->
+					<div class="watch-strap watch-strap--top"></div>
+
+					<!-- Watch body -->
+					<div class="watch-body">
+						<!-- Brush holder on the left side -->
+						<div class="brush-holder">
+							<div class="brush-holder__brush"></div>
+						</div>
+
+						<!-- OLED screen -->
+						<div class="watch-screen">
+							<div class="oled-content">
+								<div class="oled-number">5</div>
+								<div class="oled-label">Color<br />Mini Palette<br />Watch</div>
+								<div class="oled-brand">BLUE STAR CRAFTS</div>
+							</div>
+							<div class="oled-scanlines"></div>
+						</div>
+
+						<!-- Paint wells -->
+						<div class="paint-wells">
+							<div class="paint-well" style="--well-color: #e63946;"></div>
+							<div class="paint-well" style="--well-color: #f4a261;"></div>
+							<div class="paint-well" style="--well-color: #2a9d8f;"></div>
+							<div class="paint-well" style="--well-color: #264653;"></div>
+							<div class="paint-well" style="--well-color: #e9c46a;"></div>
+						</div>
+					</div>
+
+					<!-- Strap bottom -->
+					<div class="watch-strap watch-strap--bottom"></div>
+				</div>
+
+				<!-- Gallery thumbnails -->
+				<div class="gallery-thumbs">
+					<button class="thumb-btn thumb-btn--active" data-view="front-open" title="Front open">
+						<div class="thumb-watch thumb-watch--open">
+							<div class="thumb-screen"></div>
+							<div class="thumb-wells">
+								<span></span><span></span><span></span>
+							</div>
+						</div>
+					</button>
+					<button class="thumb-btn" data-view="front-closed" title="Front closed">
+						<div class="thumb-watch thumb-watch--closed">
+							<div class="thumb-logo">BSC</div>
+						</div>
+					</button>
+					<button class="thumb-btn" data-view="side" title="Side view">
+						<div class="thumb-watch thumb-watch--side">
+							<div class="thumb-side-body"></div>
+						</div>
+					</button>
+					<button class="thumb-btn" data-view="wrist" title="On wrist">
+						<div class="thumb-watch thumb-watch--wrist">
+							<div class="thumb-wrist-shape"></div>
+						</div>
+					</button>
+				</div>
+			</section>
+
+			<!-- Right: Product Details -->
+			<section class="product-details">
+				<p class="store-tag">BLUE STAR CRAFTS STORE</p>
+				<h1 class="product-title">5 Color Mini Palette Watch — OLED Edition</h1>
+				<p class="product-price">$148.00 <span class="currency">USD</span></p>
+				<p class="shipping-note">
+					<a href="#" class="shipping-link">Shipping</a> calculated at checkout.
+				</p>
+
+				<div class="product-option" data-option="body-color">
+					<label class="option-label" for="body-color">Body Color</label>
+					<select id="body-color" class="option-select">
+						<option value="Walnut">Walnut</option>
+						<option value="Ebony">Ebony</option>
+						<option value="Maple">Maple</option>
+					</select>
+				</div>
+
+				<div class="product-option" data-option="band-color">
+					<label class="option-label" for="band-color">Watchband Color</label>
+					<select id="band-color" class="option-select">
+						<option value="Black">Black</option>
+						<option value="Brown">Brown</option>
+						<option value="Tan">Tan</option>
+					</select>
+				</div>
+
+				<div class="quantity-group">
+					<label class="option-label">Quantity</label>
+					<div class="quantity-control">
+						<button id="qty-minus" class="qty-btn" aria-label="Decrease quantity">−</button>
+						<input
+							id="qty-input"
+							class="qty-input"
+							type="number"
+							value="1"
+							min="1"
+							aria-label="Quantity"
+						/>
+						<button id="qty-plus" class="qty-btn" aria-label="Increase quantity">+</button>
+					</div>
+				</div>
+
+				<button id="add-to-cart" class="cart-btn">Add to cart</button>
+				<div class="cart-feedback" id="cart-feedback" aria-live="polite"></div>
+
+				<button class="paypal-btn">
+					Pay with <strong>PayPal</strong>
+				</button>
+				<a href="#" class="more-options">More payment options</a>
+			</section>
+		</main>
+
+		<nav class="navbar">
+			<ul>
+				<li><a href="../index.html">Home</a></li>
+				<li><a href="../page2.html">Page 2</a></li>
+				<li><a href="../page3.html">Page 3</a></li>
+				<li><a href="../page4.html">Page 4</a></li>
+				<li><a href="../page5.html">Page 5</a></li>
+				<li><a href="../Page 6/page6.html">Page 6</a></li>
+			</ul>
+		</nav>
+
+		<script src="page7.js"></script>
+	</body>
+</html>
