@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>AI Drawing Assistant</title>
+		<link rel="stylesheet" href="drawing-assistant.css" />
+	</head>
+	<body>
+		<header class="app-header">
+			<div class="brand">
+				<span class="logo">✎</span>
+				<h1>AI Drawing Assistant</h1>
+			</div>
+			<nav class="navbar">
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="page2.html">Page 2</a></li>
+					<li><a href="page3.html">Page 3</a></li>
+					<li><a href="page4.html">Page 4</a></li>
+					<li><a href="page5.html">Page 5</a></li>
+				</ul>
+			</nav>
+		</header>
+
+		<main class="layout">
+			<section class="canvas-panel">
+				<div class="mode-switch">
+					<button class="mode-btn active" data-mode="canvas">
+						Canvas mode
+					</button>
+					<button class="mode-btn" data-mode="camera">
+						Watch my paper (camera)
+					</button>
+				</div>
+
+				<div class="stage" id="stage">
+					<canvas id="drawCanvas" width="900" height="600"></canvas>
+					<video id="cameraFeed" autoplay muted playsinline></video>
+					<canvas id="cameraAnalysis" width="900" height="600"></canvas>
+					<div class="reference-overlay" id="referenceOverlay"></div>
+				</div>
+
+				<div class="tool-row">
+					<label class="tool">
+						<span>Brush</span>
+						<select id="brushStyle">
+							<option value="pencil">Pencil</option>
+							<option value="ink">Ink pen</option>
+							<option value="charcoal">Charcoal</option>
+							<option value="marker">Marker</option>
+						</select>
+					</label>
+					<label class="tool">
+						<span>Size</span>
+						<input type="range" id="brushSize" min="1" max="40" value="4" />
+					</label>
+					<label class="tool">
+						<span>Color</span>
+						<input type="color" id="brushColor" value="#1f2937" />
+					</label>
+					<label class="tool toggle">
+						<input type="checkbox" id="showGuides" checked />
+						<span>Proportion guides</span>
+					</label>
+					<label class="tool toggle">
+						<input type="checkbox" id="showReference" />
+						<span>Reference overlay</span>
+					</label>
+					<button id="undoBtn" class="ghost">Undo</button>
+					<button id="clearBtn" class="ghost danger">Clear</button>
+					<button id="saveBtn" class="primary">Save PNG</button>
+				</div>
+			</section>
+
+			<aside class="assistant-panel">
+				<div class="skill-row">
+					<label>
+						Skill level
+						<select id="skillLevel">
+							<option value="beginner">Beginner</option>
+							<option value="intermediate" selected>Intermediate</option>
+							<option value="advanced">Advanced</option>
+						</select>
+					</label>
+					<label>
+						Focus
+						<select id="focusArea">
+							<option value="line">Line quality</option>
+							<option value="proportion">Proportion</option>
+							<option value="shading">Shading & value</option>
+							<option value="composition">Composition</option>
+							<option value="gesture">Gesture</option>
+						</select>
+					</label>
+				</div>
+
+				<div class="coach-card">
+					<div class="coach-header">
+						<div class="avatar">🎨</div>
+						<div>
+							<strong id="coachName">Coach Iris</strong>
+							<p id="coachMood">Watching your lines…</p>
+						</div>
+					</div>
+					<div class="feedback-stream" id="feedbackStream"></div>
+					<div class="pulse" id="pulse" aria-hidden="true">
+						<span></span><span></span><span></span>
+					</div>
+				</div>
+
+				<div class="metrics">
+					<div class="metric">
+						<span class="metric-label">Strokes</span>
+						<strong id="metricStrokes">0</strong>
+					</div>
+					<div class="metric">
+						<span class="metric-label">Coverage</span>
+						<strong id="metricCoverage">0%</strong>
+					</div>
+					<div class="metric">
+						<span class="metric-label">Avg speed</span>
+						<strong id="metricSpeed">—</strong>
+					</div>
+					<div class="metric">
+						<span class="metric-label">Balance</span>
+						<strong id="metricBalance">—</strong>
+					</div>
+				</div>
+
+				<div class="tabs">
+					<button class="tab active" data-tab="tips">Technique</button>
+					<button class="tab" data-tab="history">Art history</button>
+					<button class="tab" data-tab="exercises">Exercises</button>
+				</div>
+
+				<div class="tab-panel active" data-panel="tips">
+					<h3 id="tipTitle">Loose warm-up strokes</h3>
+					<p id="tipBody">
+						Start with light, repeated passes rather than single committed
+						lines. Your hand learns the shape before your pencil does.
+					</p>
+					<div class="demo-box" id="techniqueDemo"></div>
+					<button id="nextTip" class="ghost">Another tip</button>
+				</div>
+
+				<div class="tab-panel" data-panel="history">
+					<h3 id="historyTitle">Choose a style</h3>
+					<div class="style-chips" id="styleChips"></div>
+					<p id="historyBody" class="history-body">
+						Pick a style to see its origin, famous artists, and what
+						makes it recognisable.
+					</p>
+				</div>
+
+				<div class="tab-panel" data-panel="exercises">
+					<h3>Quick drills</h3>
+					<ul class="exercise-list" id="exerciseList"></ul>
+					<div class="exercise-timer">
+						<button id="startDrill" class="primary">Start 60-second drill</button>
+						<span id="drillClock">00:60</span>
+					</div>
+				</div>
+			</aside>
+		</main>
+
+		<script src="drawing-assistant.js"></script>
+	</body>
+</html>
