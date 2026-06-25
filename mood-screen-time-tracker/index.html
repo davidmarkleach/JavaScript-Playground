@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Free, no-login, on-device app to log your mood and screen time and see how they relate."
+		/>
+		<meta name="theme-color" content="#6c5ce7" />
+		<title>Mood vs Screen Time</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<header class="app-header">
+			<h1>Mood&nbsp;<span aria-hidden="true">↔</span>&nbsp;Screen Time</h1>
+			<p class="tagline">
+				A tiny experiment: does less screen time mean a happier you?
+			</p>
+			<p class="privacy-note">
+				🔒 No login. Your data lives only on this device — nothing is sent
+				anywhere unless you choose to contribute it for research.
+			</p>
+		</header>
+
+		<nav class="tabs" role="tablist" aria-label="Sections">
+			<button class="tab is-active" data-tab="log" role="tab" aria-selected="true">
+				Log today
+			</button>
+			<button class="tab" data-tab="insights" role="tab" aria-selected="false">
+				Insights
+			</button>
+			<button class="tab" data-tab="history" role="tab" aria-selected="false">
+				History
+			</button>
+			<button class="tab" data-tab="data" role="tab" aria-selected="false">
+				Data &amp; research
+			</button>
+		</nav>
+
+		<main>
+			<!-- ============ LOG TAB ============ -->
+			<section id="tab-log" class="panel is-active" role="tabpanel">
+				<form id="entry-form" autocomplete="off">
+					<div class="card">
+						<label class="field-label" for="entry-date">Date</label>
+						<input type="date" id="entry-date" required />
+					</div>
+
+					<div class="card">
+						<p class="field-label">How was your mood?</p>
+						<div class="mood-picker" id="mood-picker" role="radiogroup" aria-label="Mood">
+							<button type="button" class="mood" data-mood="1" title="Awful">😢</button>
+							<button type="button" class="mood" data-mood="2" title="Low">🙁</button>
+							<button type="button" class="mood" data-mood="3" title="Okay">😐</button>
+							<button type="button" class="mood" data-mood="4" title="Good">🙂</button>
+							<button type="button" class="mood" data-mood="5" title="Great">😄</button>
+						</div>
+						<p class="mood-label" id="mood-label">Tap a face</p>
+					</div>
+
+					<div class="card">
+						<label class="field-label" for="total-screen">
+							Total screen time today
+						</label>
+						<div class="time-input">
+							<div>
+								<input type="number" id="screen-hours" min="0" max="24" inputmode="numeric" placeholder="0" />
+								<span>hrs</span>
+							</div>
+							<div>
+								<input type="number" id="screen-mins" min="0" max="59" inputmode="numeric" placeholder="0" />
+								<span>min</span>
+							</div>
+						</div>
+						<p class="hint">
+							Tip: most phones show this under Settings → Screen Time / Digital
+							Wellbeing.
+						</p>
+					</div>
+
+					<div class="card">
+						<p class="field-label">Of that, social apps (minutes)</p>
+						<p class="hint">Optional — only fill what you use.</p>
+						<div class="social-grid" id="social-grid"><!-- filled by JS --></div>
+					</div>
+
+					<div class="card">
+						<label class="field-label" for="note">Anything notable? (optional)</label>
+						<textarea id="note" rows="2" placeholder="e.g. slept badly, great workout…"></textarea>
+					</div>
+
+					<button type="submit" class="btn btn-primary btn-block">Save today's entry</button>
+					<p class="save-status" id="save-status" aria-live="polite"></p>
+				</form>
+			</section>
+
+			<!-- ============ INSIGHTS TAB ============ -->
+			<section id="tab-insights" class="panel" role="tabpanel">
+				<div class="card stat-banner" id="hypothesis-banner">
+					<p>Log a few days to start seeing patterns.</p>
+				</div>
+
+				<div class="card">
+					<h2>Mood vs. screen time</h2>
+					<p class="hint">Each dot is one day. Down-right would support the hypothesis.</p>
+					<div id="scatter"></div>
+				</div>
+
+				<div class="card">
+					<h2>Which apps track with worse moods?</h2>
+					<p class="hint">
+						Average mood on your heaviest-use days vs. your lightest-use days, per app.
+					</p>
+					<div id="app-breakdown"></div>
+				</div>
+
+				<div class="card">
+					<h2>Last 14 days</h2>
+					<div id="trend"></div>
+				</div>
+			</section>
+
+			<!-- ============ HISTORY TAB ============ -->
+			<section id="tab-history" class="panel" role="tabpanel">
+				<div class="card">
+					<h2>Your entries</h2>
+					<div id="history-list"></div>
+				</div>
+			</section>
+
+			<!-- ============ DATA TAB ============ -->
+			<section id="tab-data" class="panel" role="tabpanel">
+				<div class="card">
+					<h2>Contribute to the research 🔬</h2>
+					<p>
+						This is an open experiment testing: <strong>less screen time → happier
+						people</strong>, broken down by social app. Sharing is 100% optional and
+						anonymous — no name, no email, no device ID. Just your dates, moods, and
+						minutes.
+					</p>
+					<button class="btn btn-primary" id="contribute-btn">Review &amp; send my data</button>
+					<p class="hint">
+						You'll see exactly what gets shared and can copy it or email it yourself —
+						nothing leaves your device automatically.
+					</p>
+					<pre id="contribute-preview" class="preview" hidden></pre>
+					<div id="contribute-actions" class="row" hidden>
+						<button class="btn" id="copy-btn">Copy</button>
+						<button class="btn" id="email-btn">Email it</button>
+						<button class="btn" id="download-research-btn">Download</button>
+					</div>
+				</div>
+
+				<div class="card">
+					<h2>Your data, your control</h2>
+					<div class="row">
+						<button class="btn" id="export-btn">Export backup (.json)</button>
+						<button class="btn" id="import-btn">Import backup</button>
+						<input type="file" id="import-file" accept="application/json" hidden />
+					</div>
+					<button class="btn btn-danger" id="clear-btn">Delete everything</button>
+				</div>
+			</section>
+		</main>
+
+		<footer class="app-footer">
+			<p>Free &amp; open. Built as a science experiment, not a product.</p>
+		</footer>
+
+		<script src="app.js"></script>
+	</body>
+</html>
