@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<link rel="stylesheet" href="food-bedazzle.css" />
+		<title>Food Bedazzle</title>
+	</head>
+	<body>
+		<header class="fb-header">
+			<a class="fb-home" href="index.html">&larr; Playground</a>
+			<h1>Food Bedazzle <span class="fb-gem">&#10022;</span></h1>
+			<p class="fb-tagline">Bedazzle a snack. Get hungry. Go eat something.</p>
+		</header>
+
+		<!-- Puzzle picker -->
+		<section id="menu-screen" class="fb-screen">
+			<h2>Pick a snack to bedazzle</h2>
+			<div id="menu-grid" class="fb-menu-grid"></div>
+		</section>
+
+		<!-- Game -->
+		<section id="game-screen" class="fb-screen hidden">
+			<div class="fb-game-top">
+				<button id="back-btn" class="fb-btn fb-btn-ghost">&larr; Snacks</button>
+				<div class="fb-progress-wrap">
+					<div class="fb-progress-track">
+						<div id="progress-fill" class="fb-progress-fill"></div>
+					</div>
+					<span id="progress-label">0%</span>
+				</div>
+				<button id="reset-btn" class="fb-btn fb-btn-ghost">Reset</button>
+			</div>
+
+			<h2 id="puzzle-title" class="fb-puzzle-title"></h2>
+
+			<div class="fb-canvas-wrap">
+				<canvas id="board"></canvas>
+			</div>
+
+			<div id="palette" class="fb-palette"></div>
+		</section>
+
+		<!-- Completion overlay -->
+		<div id="win-overlay" class="fb-overlay hidden">
+			<div class="fb-win-card">
+				<div id="win-emoji" class="fb-win-emoji"></div>
+				<h2 id="win-title"></h2>
+				<p id="win-message"></p>
+				<button id="win-menu-btn" class="fb-btn fb-btn-primary">Bedazzle another snack</button>
+			</div>
+			<div id="emoji-rain"></div>
+		</div>
+
+		<script src="food-bedazzle.js"></script>
+	</body>
+</html>
