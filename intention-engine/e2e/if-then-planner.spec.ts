@@ -39,6 +39,10 @@ function loopAction(page: Page, text: string) {
   return board(page).locator('[data-slot="loop-action"]', { hasText: text });
 }
 
+function loopTrigger(page: Page) {
+  return board(page).locator('[data-slot="loop-trigger"]');
+}
+
 async function armLoop(page: Page, triggerText: string, targetText: string) {
   await trigger(page).fill(triggerText);
   await target(page).fill(targetText);
@@ -96,8 +100,19 @@ test("rewrites the sentence for each of the three cue configurations", async ({ 
   await page.getByRole("tab", { name: "Backup" }).click();
   await expect(connector(page)).toHaveText("If I miss");
 
+  // Each cue's connector carries into the saved row, so the trigger reads as a
+  // sentence rather than a bare fragment.
   await armLoop(page, "the 7:15am window", "I do the 10-minute version");
   await expect(board(page).getByText("Backup", { exact: true })).toBeVisible();
+  await expect(loopTrigger(page)).toHaveText("If I miss the 7:15am window");
+
+  await page.getByRole("tab", { name: "Event" }).click();
+  await armLoop(page, "I pour my morning coffee", "I write three priorities");
+  await expect(loopTrigger(page).first()).toHaveText("When I pour my morning coffee");
+
+  await page.getByRole("tab", { name: "Time" }).click();
+  await armLoop(page, "7:15am at the kitchen table", "I read one chapter");
+  await expect(loopTrigger(page).first()).toHaveText("At 7:15am at the kitchen table");
 });
 
 test("strikes a loop through when it fires, and undoes it from the toast", async ({ page }) => {
