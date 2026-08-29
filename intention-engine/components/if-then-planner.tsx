@@ -77,6 +77,12 @@ const PAYLOAD_VERSION = 1
  */
 const MIN_TRIGGER_LENGTH = 4
 
+/**
+ * Destructive actions need a wider window than the default toast so the undo is
+ * actually reachable.
+ */
+const UNDO_TOAST_DURATION = 12_000
+
 const CUE_ORDER: readonly CueType[] = ["event", "time", "contingency"]
 
 const CUE_CONFIG: Record<
@@ -359,15 +365,23 @@ export function IfThenPlanner() {
   const firedCount = intentions.length - armedCount
   const completion = intentions.length === 0 ? 0 : Math.round((firedCount / intentions.length) * 100)
 
-  const visible = React.useMemo(() => {
-    const ordered = [...intentions].sort((a, b) => {
-      if (a.done !== b.done) return a.done ? 1 : -1
-      return b.createdAt - a.createdAt
-    })
-    if (filter === "armed") return ordered.filter((item) => !item.done)
-    if (filter === "fired") return ordered.filter((item) => item.done)
+  // Armed loops float to the top, newest first within each half.
+  const ordered = React.useMemo(
+    () =>
+      [...intentions].sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1
+        return b.createdAt - a.createdAt
+      }),
+    [intentions],
+  )
+
+  // Each panel filters for itself, because the tabs keep previously activated
+  // panels mounted.
+  function loopsFor(key: ListFilter) {
+    if (key === "armed") return ordered.filter((item) => !item.done)
+    if (key === "fired") return ordered.filter((item) => item.done)
     return ordered
-  }, [intentions, filter])
+  }
 
   function commitIntention() {
     if (!canCommit) {
@@ -439,6 +453,7 @@ export function IfThenPlanner() {
     loopStore.update((current) => current.filter((item) => item.id !== id))
     toast("Loop removed.", {
       description: target.action,
+      duration: UNDO_TOAST_DURATION,
       action: {
         label: "Undo",
         onClick: () =>
@@ -459,6 +474,7 @@ export function IfThenPlanner() {
     const snapshot = intentions
     loopStore.update((current) => current.filter((item) => !item.done))
     toast(`Cleared ${removed.length} fired ${removed.length === 1 ? "loop" : "loops"}.`, {
+      duration: UNDO_TOAST_DURATION,
       action: { label: "Undo", onClick: () => loopStore.update(() => snapshot) },
     })
   }
@@ -505,7 +521,10 @@ export function IfThenPlanner() {
       mode === "replace"
         ? `Replaced your board with ${incoming.length} ${incoming.length === 1 ? "loop" : "loops"}.`
         : `Merged ${incoming.length} ${incoming.length === 1 ? "loop" : "loops"}.`,
-      { action: { label: "Undo", onClick: () => loopStore.update(() => snapshot) } },
+      {
+        duration: UNDO_TOAST_DURATION,
+        action: { label: "Undo", onClick: () => loopStore.update(() => snapshot) },
+      },
     )
   }
 
@@ -626,7 +645,10 @@ export function IfThenPlanner() {
             </div>
 
             <div className="flex items-center gap-2 rounded-lg border border-input bg-muted/40 px-2.5 py-2">
-              <span className="shrink-0 text-sm font-medium text-muted-foreground">
+              <span
+                data-slot="cue-connector"
+                className="shrink-0 text-sm font-medium text-muted-foreground"
+              >
                 {cue.connector}
               </span>
               <Input
@@ -736,24 +758,27 @@ export function IfThenPlanner() {
             <TabsTrigger value="fired">Fired {firedCount}</TabsTrigger>
           </TabsList>
 
-          {(["all", "armed", "fired"] as const).map((key) => (
-            <TabsContent key={key} value={key} className="mt-3 flex flex-col gap-2">
-              {!hydrated ? (
-                <BoardSkeleton />
-              ) : visible.length === 0 ? (
-                <EmptyBoard filter={key} />
-              ) : (
-                visible.map((item) => (
-                  <IntentionRow
-                    key={item.id}
-                    intention={item}
-                    onToggle={toggleIntention}
-                    onDelete={deleteIntention}
-                  />
-                ))
-              )}
-            </TabsContent>
-          ))}
+          {(["all", "armed", "fired"] as const).map((key) => {
+            const loops = loopsFor(key)
+            return (
+              <TabsContent key={key} value={key} className="mt-3 flex flex-col gap-2">
+                {!hydrated ? (
+                  <BoardSkeleton />
+                ) : loops.length === 0 ? (
+                  <EmptyBoard filter={key} />
+                ) : (
+                  loops.map((item) => (
+                    <IntentionRow
+                      key={item.id}
+                      intention={item}
+                      onToggle={toggleIntention}
+                      onDelete={deleteIntention}
+                    />
+                  ))
+                )}
+              </TabsContent>
+            )
+          })}
         </Tabs>
       </section>
     </div>
@@ -822,13 +847,12 @@ function IntentionRow({
       )}
     >
       <CardContent className="flex items-start gap-3">
+        {/* Base UI derives the accessible name from the `for`-matched label, so the
+            screen reader announces the loop itself rather than a generic string. */}
         <Checkbox
           id={checkboxId}
           checked={intention.done}
           onCheckedChange={() => onToggle(intention.id)}
-          aria-label={
-            intention.done ? "Re-arm this loop" : "Mark this loop as fired"
-          }
           className="mt-1 size-5"
         />
 
@@ -847,6 +871,7 @@ function IntentionRow({
           </span>
 
           <span
+            data-slot="loop-trigger"
             className={cn(
               "block text-xs break-words text-muted-foreground",
               intention.done && "line-through",
@@ -856,6 +881,7 @@ function IntentionRow({
             {intention.trigger}
           </span>
           <span
+            data-slot="loop-action"
             className={cn(
               "mt-0.5 flex items-start gap-1.5 text-sm break-words text-foreground",
               intention.done && "text-muted-foreground line-through decoration-2",
@@ -957,10 +983,14 @@ function TransferDialog({
         </TabsList>
 
         <TabsContent value="export" className="mt-3 flex flex-col gap-3">
+          <Label htmlFor="transfer-export" className="text-xs text-muted-foreground">
+            Your board as a payload
+          </Label>
           <Textarea
+            id="transfer-export"
+            name="transfer-export"
             readOnly
             value={payload}
-            aria-label="Exported payload"
             onFocus={(event) => event.currentTarget.select()}
             className="h-48 resize-none overflow-y-auto font-mono text-xs"
           />
@@ -971,11 +1001,15 @@ function TransferDialog({
         </TabsContent>
 
         <TabsContent value="import" className="mt-3 flex flex-col gap-3">
+          <Label htmlFor="transfer-import" className="text-xs text-muted-foreground">
+            Paste a payload from another device
+          </Label>
           <Textarea
+            id="transfer-import"
+            name="transfer-import"
             value={importDraft}
             onChange={(event) => onImportDraftChange(event.target.value)}
             placeholder='{ "intentions": [ { "cueType": "time", "trigger": "7:15am", "action": "Read one chapter" } ] }'
-            aria-label="Payload to import"
             className="h-48 resize-none overflow-y-auto font-mono text-xs"
           />
           <p className="flex items-start gap-1.5 text-xs text-muted-foreground">

@@ -15,8 +15,16 @@ npm run dev      # http://localhost:3000
 ```
 
 ```bash
-npm run build    # production build
-npm run lint     # eslint
+npm run build      # production build
+npm run lint       # eslint
+npm run typecheck  # tsc --noEmit
+npm run test:e2e   # playwright, at a phone viewport
+```
+
+The Playwright suite builds on `next start` and needs a browser once:
+
+```bash
+npx playwright install chromium
 ```
 
 ## What's inside
@@ -27,6 +35,7 @@ npm run lint     # eslint
 | `components/ui/` | shadcn/ui primitives (`base-nova` style, Base UI under the hood) |
 | `src/app/page.tsx` | Route that mounts the planner |
 | `src/app/layout.tsx` | Fonts, theme provider, sonner `<Toaster />` |
+| `e2e/if-then-planner.spec.ts` | End-to-end coverage of the lock, cues, persistence and transfer |
 
 ### Behaviour
 
