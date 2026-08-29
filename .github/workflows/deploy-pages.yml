@@ -33,16 +33,24 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: if-then-engine/package-lock.json
+          cache-dependency-path: |
+            if-then-engine/package-lock.json
+            intention-engine/package-lock.json
 
-      - name: Build the IF-THEN Intention Engine
+      - name: Build the IF-THEN Intention Engine (Vite)
         working-directory: if-then-engine
         run: |
           npm ci
           npm run build
 
-      # The static pages ship as-is; the Vite app is layered in as a
-      # subdirectory so both live under the same Pages site.
+      - name: Build the Intention Engine (Next.js static export)
+        working-directory: intention-engine
+        run: |
+          npm ci
+          npm run build
+
+      # The static pages ship as-is; each app is built and layered in as its
+      # own subdirectory so everything lives under the same Pages site.
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -51,9 +59,11 @@ jobs:
             --exclude='./.git' \
             --exclude='./node_modules' \
             --exclude='./if-then-engine' \
+            --exclude='./intention-engine' \
             . | tar -xf - -C _site
-          mkdir -p _site/if-then-engine
+          mkdir -p _site/if-then-engine _site/intention-engine
           cp -r if-then-engine/dist/. _site/if-then-engine/
+          cp -r intention-engine/out/. _site/intention-engine/
 
       - uses: actions/configure-pages@v5
         with:
