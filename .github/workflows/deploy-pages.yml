@@ -5,6 +5,7 @@ on:
     branches:
       - Second-JavaScript-Playground
       - claude/food-puzzle-app-8ov90c
+      - claude/if-then-intention-engine-skm5bo
   workflow_dispatch:
 
 permissions:
@@ -24,11 +25,38 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: if-then-engine/package-lock.json
+
+      - name: Build the IF-THEN Intention Engine
+        working-directory: if-then-engine
+        run: |
+          npm ci
+          npm run build
+
+      # The static pages ship as-is; the Vite app is layered in as a
+      # subdirectory so both live under the same Pages site.
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          tar -cf - \
+            --exclude='./_site' \
+            --exclude='./.git' \
+            --exclude='./node_modules' \
+            --exclude='./if-then-engine' \
+            . | tar -xf - -C _site
+          mkdir -p _site/if-then-engine
+          cp -r if-then-engine/dist/. _site/if-then-engine/
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
