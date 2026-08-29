@@ -877,8 +877,9 @@ function IntentionRow({
               intention.done && "line-through",
             )}
           >
-            <span className="font-mono font-medium">IF</span> {cue.connector.toLowerCase()}{" "}
-            {intention.trigger}
+            {/* The connector already reads as the condition, so prefixing a literal
+                "IF" would stutter on the contingency cue. */}
+            {cue.connector} {intention.trigger}
           </span>
           <span
             data-slot="loop-action"
