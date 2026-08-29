@@ -3,9 +3,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
+      # The github-pages environment only permits deployments from
+      # Second-JavaScript-Playground, so pushes to any other branch build
+      # fine but fail at actions/deploy-pages. Add a branch here only after
+      # allowing it under Settings > Environments > github-pages.
       - Second-JavaScript-Playground
       - claude/food-puzzle-app-8ov90c
-      - claude/if-then-intention-engine-skm5bo
   workflow_dispatch:
 
 permissions:
