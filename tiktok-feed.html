@@ -1,0 +1,1284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monsoon Feed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --room:#08080B;
+  --room-2:#101016;
+  --ink:#F4F4F6;
+  --ink-dim:#8A8A96;
+  --ink-faint:#4A4A55;
+  --rose:#FE2C55;
+  --cyan:#25F4EE;
+  --hair:rgba(255,255,255,.09);
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --glow:#FF6B1A;
+  --phone-w:min(430px, 94vw);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--room);
+  color:var(--ink);
+  font-family:var(--ui);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+/* ambient light the device throws into the room */
+#room{
+  position:fixed; inset:0;
+  background:
+    radial-gradient(120% 80% at 50% 42%, color-mix(in srgb, var(--glow) 26%, transparent) 0%, transparent 62%),
+    radial-gradient(90% 60% at 50% 105%, color-mix(in srgb, var(--glow) 14%, transparent) 0%, transparent 70%),
+    var(--room);
+  transition:background 900ms ease;
+  z-index:0;
+}
+#room::after{
+  content:""; position:absolute; inset:0;
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+  background-size:26px 26px;
+  mask-image:radial-gradient(70% 60% at 50% 45%, #000 0%, transparent 75%);
+}
+#stage{
+  position:relative; z-index:1;
+  height:100%;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:clamp(16px,3vw,54px);
+  padding:clamp(12px,2vh,28px) clamp(12px,3vw,40px);
+}
+
+/* ───────── spec rails ───────── */
+.rail{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.06em;
+  color:var(--ink-dim);
+  max-width:280px;
+  display:flex; flex-direction:column; gap:22px;
+}
+.rail.left{justify-self:end; text-align:right; align-items:flex-end}
+.rail.right{justify-self:start}
+.rail h1{
+  font-size:13px; font-weight:600; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink); margin:0 0 8px;
+}
+.rail p{margin:0; line-height:1.7; color:var(--ink-faint); letter-spacing:.02em}
+.rail .lede{color:var(--ink-dim)}
+.block{display:flex; flex-direction:column; gap:8px}
+.eyebrow{
+  font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint);
+  display:flex; align-items:center; gap:8px;
+}
+.rail.left .eyebrow{flex-direction:row-reverse}
+.eyebrow::after{content:""; flex:1; height:1px; background:var(--hair)}
+.keys{display:flex; flex-direction:column; gap:7px; width:100%}
+.key{display:flex; align-items:center; gap:10px; justify-content:flex-end}
+.rail.right .key{justify-content:flex-start}
+kbd{
+  font-family:var(--mono); font-size:10px; font-weight:500;
+  border:1px solid var(--hair); border-bottom-width:2px; border-radius:5px;
+  padding:3px 7px; color:var(--ink); background:var(--room-2);
+  min-width:26px; text-align:center;
+}
+.key span{color:var(--ink-faint)}
+.swatches{display:flex; gap:5px}
+.sw{width:100%; height:26px; border-radius:3px; flex:1}
+.meta{display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:11px}
+.meta dt{color:var(--ink-faint)}
+.meta dd{margin:0; color:var(--ink); font-variant-numeric:tabular-nums}
+.rail.left .meta{grid-template-columns:1fr auto; text-align:right}
+.rail.left .meta dt{order:2} .rail.left .meta dd{order:1}
+
+/* ───────── the device ───────── */
+#device{
+  position:relative;
+  width:var(--phone-w);
+  height:min(92vh, calc(var(--phone-w) * 2.1667));
+  aspect-ratio:9/19.5;
+  border-radius:min(52px, 12vw);
+  background:#000;
+  box-shadow:
+    0 0 0 2px #17171c,
+    0 0 0 11px #0c0c10,
+    0 0 0 12px rgba(255,255,255,.07),
+    0 46px 90px -20px rgba(0,0,0,.9),
+    0 0 130px -30px color-mix(in srgb, var(--glow) 60%, transparent);
+  overflow:hidden;
+  isolation:isolate;
+  transition:box-shadow 900ms ease;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#device:focus-visible{outline:2px solid var(--cyan); outline-offset:14px}
+
+/* ───────── feed ───────── */
+#feed{
+  position:absolute; inset:0; z-index:1; isolation:isolate;
+  overflow-y:scroll;
+  scroll-snap-type:y mandatory;
+  scrollbar-width:none;
+  overscroll-behavior:contain;
+}
+#feed::-webkit-scrollbar{display:none}
+.post{
+  position:relative;
+  height:100%;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  overflow:hidden;
+  background:#000;
+}
+.scene{position:absolute; inset:0; overflow:hidden}
+.scene svg{
+  position:absolute; inset:-4%;
+  width:108%; height:108%;
+  display:block;
+  animation:drift 26s ease-in-out infinite alternate;
+}
+.post.paused .scene svg{animation-play-state:paused}
+@keyframes drift{
+  from{transform:scale(1.02) translate3d(-0.6%, 0.5%, 0)}
+  to{transform:scale(1.11) translate3d(0.9%, -1.2%, 0)}
+}
+/* film grain + vignette so the flat vectors read as footage */
+.scene::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(120% 78% at 50% 44%, transparent 40%, rgba(0,0,0,.42) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, transparent 22%, transparent 58%, rgba(0,0,0,.72) 100%);
+}
+.grain{
+  position:absolute; inset:-50%; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 700ms steps(4) infinite;
+}
+@keyframes grain{
+  0%{transform:translate(0,0)} 25%{transform:translate(-3%,2%)}
+  50%{transform:translate(2%,-3%)} 75%{transform:translate(-2%,-2%)} 100%{transform:translate(3%,1%)}
+}
+.rain{position:absolute; inset:-20% -10%; pointer-events:none; opacity:.28}
+.rain i{
+  position:absolute; top:-14%; width:1px; height:70px;
+  background:linear-gradient(180deg, transparent, rgba(255,235,205,.85));
+  transform:rotate(11deg);
+  animation:fall linear infinite;
+}
+@keyframes fall{to{transform:translateY(150vh) rotate(11deg)}}
+
+/* ───────── phone chrome ───────── */
+.chrome{position:absolute; inset:0; pointer-events:none; z-index:3}
+.chrome > *{pointer-events:auto}
+.statusbar{
+  position:absolute; top:0; left:0; right:0;
+  height:54px; padding:0 30px 0 34px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:16px; font-weight:600; letter-spacing:-.2px;
+  color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.4);
+  font-variant-numeric:tabular-nums;
+}
+.status-l,.status-r{display:flex; align-items:center; gap:6px}
+.notch{
+  position:absolute; top:9px; left:50%; transform:translateX(-50%);
+  width:98px; height:31px; border-radius:20px; background:#000; z-index:6;
+}
+.notch::after{
+  content:""; position:absolute; right:9px; top:50%; transform:translateY(-50%);
+  width:11px; height:11px; border-radius:50%;
+  background:radial-gradient(circle at 32% 32%, #1d2b3a, #05070a 62%);
+  box-shadow:inset 0 0 2px rgba(120,180,255,.35);
+}
+
+/* top nav */
+.topnav{
+  position:absolute; top:52px; left:0; right:0;
+  display:flex; align-items:center; gap:4px;
+  padding:0 14px;
+  height:44px;
+}
+.icon-btn{
+  background:none; border:0; padding:6px; cursor:pointer; color:#fff;
+  display:grid; place-items:center; border-radius:12px;
+  filter:drop-shadow(0 1px 4px rgba(0,0,0,.45));
+  transition:transform .16s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.icon-btn:active{transform:scale(.86)}
+.icon-btn:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.tabs{
+  position:relative; flex:1; display:flex; align-items:center; gap:20px;
+  overflow-x:auto; scrollbar-width:none; scroll-behavior:smooth;
+  mask-image:linear-gradient(90deg, transparent 0, #000 26px, #000 calc(100% - 10px), transparent 100%);
+  padding:0 6px;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  position:relative; flex:0 0 auto;
+  background:none; border:0; cursor:pointer; padding:6px 0 10px;
+  font-family:var(--ui); font-size:17px; font-weight:600; letter-spacing:-.2px;
+  color:rgba(255,255,255,.62); white-space:nowrap;
+  text-shadow:0 1px 4px rgba(0,0,0,.45);
+  transition:color .22s ease, transform .22s ease;
+}
+.tab[aria-selected="true"]{color:#fff; font-weight:700; transform:scale(1.02)}
+.tab .dot{
+  position:absolute; top:3px; right:-7px; width:7px; height:7px;
+  border-radius:50%; background:var(--rose); box-shadow:0 0 8px var(--rose);
+}
+#tab-underline{
+  position:absolute; bottom:6px; height:2.5px; border-radius:2px; background:#fff;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 1px 6px rgba(0,0,0,.5);
+}
+
+/* ───────── right action rail ───────── */
+.actions{
+  position:absolute; right:8px; bottom:150px;
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  z-index:4;
+}
+.act{
+  background:none; border:0; padding:0; cursor:pointer; color:#fff;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  font-family:var(--ui); font-size:13px; font-weight:600;
+  font-variant-numeric:tabular-nums; letter-spacing:-.1px;
+  text-shadow:0 1px 5px rgba(0,0,0,.5);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+}
+.act:active{transform:scale(.88)}
+.act:focus-visible{outline:2px solid var(--cyan); outline-offset:5px; border-radius:14px}
+.act svg{display:block}
+.act.on svg{color:var(--rose)}
+.act.on .bookmark-fill{color:#FFC300}
+.act.pop svg{animation:pop .48s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.42)}62%{transform:scale(.9)}100%{transform:scale(1)}}
+.avatar-wrap{position:relative; margin-bottom:8px}
+.avatar{
+  width:50px; height:50px; border-radius:50%; border:1.5px solid #fff; overflow:hidden;
+  display:block; background:#222;
+}
+.avatar svg{width:100%; height:100%}
+.follow{
+  position:absolute; left:50%; bottom:-11px; transform:translateX(-50%);
+  width:23px; height:23px; border-radius:50%; border:0; cursor:pointer;
+  background:var(--rose); color:#fff; display:grid; place-items:center;
+  font-size:16px; line-height:1; padding:0;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), background .3s;
+}
+.follow.done{background:#fff; color:var(--rose); transform:translateX(-50%) scale(.82) rotate(360deg)}
+.disc{
+  width:46px; height:46px; border-radius:50%; margin-top:6px;
+  background:conic-gradient(from 0deg,#2b2b2b,#0d0d0d 25%,#333 50%,#0b0b0b 75%,#2b2b2b);
+  display:grid; place-items:center; position:relative;
+  animation:spin 4.5s linear infinite;
+  box-shadow:0 2px 10px rgba(0,0,0,.6);
+}
+.post.paused .disc{animation-play-state:paused}
+.disc .label{width:24px; height:24px; border-radius:50%; overflow:hidden}
+.disc .label svg{width:100%; height:100%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note{
+  position:absolute; right:34px; bottom:96px; color:#fff; opacity:0; pointer-events:none;
+  font-size:13px; filter:drop-shadow(0 0 6px rgba(255,255,255,.5));
+}
+.note.go{animation:float-note 2.6s ease-out infinite}
+.note.b{animation-delay:1.3s; right:52px; font-size:10px}
+@keyframes float-note{
+  0%{opacity:0; transform:translate(0,0) rotate(-8deg)}
+  18%{opacity:.9}
+  100%{opacity:0; transform:translate(-32px,-70px) rotate(22deg)}
+}
+
+/* ───────── caption block ───────── */
+.info{
+  position:absolute; left:0; right:88px; bottom:96px;
+  padding:0 16px; z-index:4;
+  display:flex; flex-direction:column; gap:9px; align-items:flex-start;
+}
+.repost{
+  display:inline-flex; align-items:center; gap:9px;
+  background:rgba(30,30,30,.72); backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:0; cursor:pointer; color:#fff;
+  padding:9px 16px 9px 13px; border-radius:9px;
+  font-family:var(--ui); font-size:15px; font-weight:600; letter-spacing:-.2px;
+  transition:background .2s, transform .18s cubic-bezier(.34,1.56,.64,1);
+}
+.repost:active{transform:scale(.96)}
+.repost.done{background:rgba(37,244,238,.16); color:var(--cyan)}
+.author{
+  font-size:17px; font-weight:700; letter-spacing:-.3px; color:#fff;
+  text-shadow:0 1px 6px rgba(0,0,0,.55);
+}
+.caption{
+  font-size:15px; line-height:1.32; color:#fff; letter-spacing:-.2px;
+  text-shadow:0 1px 6px rgba(0,0,0,.6);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; max-width:100%; cursor:pointer; margin:0;
+}
+.caption.open{-webkit-line-clamp:12}
+.caption .tag{font-weight:600}
+.caption .more{color:rgba(255,255,255,.62); font-weight:600}
+.music{
+  display:flex; align-items:center; gap:7px; max-width:100%;
+  font-size:14px; color:#fff; text-shadow:0 1px 5px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.music .marquee{overflow:hidden; white-space:nowrap; flex:1}
+.music .marquee span{display:inline-block; padding-right:36px; animation:marquee 13s linear infinite}
+.post.paused .music .marquee span{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)} to{transform:translateX(-50%)}}
+
+/* ───────── playback ───────── */
+.tapzone{position:absolute; inset:0; z-index:2; cursor:pointer; background:none; border:0; padding:0; -webkit-appearance:none; appearance:none}
+.playglyph{
+  position:absolute; inset:0; display:grid; place-items:center; z-index:3;
+  pointer-events:none; opacity:0; transform:scale(1.35);
+  transition:opacity .22s ease, transform .22s ease;
+}
+.post.paused .playglyph{opacity:1; transform:scale(1)}
+.playglyph svg{filter:drop-shadow(0 4px 22px rgba(0,0,0,.55))}
+.burst{position:absolute; z-index:5; pointer-events:none; color:var(--rose); transform:translate(-50%,-50%)}
+.burst svg{animation:burst 1s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes burst{
+  0%{transform:scale(0) rotate(-18deg); opacity:0}
+  22%{transform:scale(1.18) rotate(-14deg); opacity:1}
+  46%{transform:scale(.98) rotate(-14deg); opacity:1}
+  100%{transform:scale(1.1) rotate(-10deg) translateY(-40px); opacity:0}
+}
+.scrub{
+  position:absolute; left:0; right:0; bottom:83px; height:22px; z-index:5;
+  display:flex; align-items:flex-end; cursor:pointer; touch-action:none;
+}
+.track{position:relative; height:2.5px; width:100%; background:rgba(255,255,255,.3)}
+.fill{position:absolute; inset:0 auto 0 0; width:0%; background:#fff}
+.knob{
+  position:absolute; top:50%; left:0; width:12px; height:12px; border-radius:50%;
+  background:#fff; transform:translate(-50%,-50%) scale(0); transform-origin:center;
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 10px rgba(0,0,0,.5);
+}
+.scrub.live .track{height:4px}
+.scrub.live .knob{transform:translate(-50%,-50%) scale(1)}
+.timecode{
+  position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums;
+  color:#fff; background:rgba(0,0,0,.55); padding:4px 10px; border-radius:7px;
+  opacity:0; transition:opacity .18s; backdrop-filter:blur(8px);
+}
+.scrub.live .timecode{opacity:1}
+
+/* ───────── bottom bar ───────── */
+.tabbar{
+  position:absolute; left:0; right:0; bottom:0; height:83px; z-index:6;
+  background:#000; display:flex; align-items:flex-start; padding-top:9px;
+}
+.nav{
+  flex:1; background:none; border:0; cursor:pointer; padding:0;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  color:rgba(255,255,255,.55); font-family:var(--ui); font-size:10px; font-weight:600;
+  transition:color .2s, transform .16s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+}
+.nav[aria-current="page"]{color:#fff}
+.nav:active{transform:scale(.9)}
+.nav:focus-visible{outline:2px solid var(--cyan); outline-offset:2px; border-radius:8px}
+.badge{
+  position:absolute; top:-4px; left:calc(50% + 6px);
+  min-width:17px; height:17px; padding:0 5px; border-radius:9px;
+  background:var(--rose); color:#fff; font-size:11px; font-weight:700;
+  display:grid; place-items:center; font-variant-numeric:tabular-nums;
+  border:1.5px solid #000;
+}
+.create{
+  width:44px; height:29px; border-radius:9px; background:#fff; position:relative;
+  display:grid; place-items:center; color:#000;
+}
+.create::before,.create::after{content:""; position:absolute; inset:0; border-radius:9px; z-index:-1}
+.create::before{background:var(--cyan); transform:translateX(-4px)}
+.create::after{background:var(--rose); transform:translateX(4px)}
+.homebar{
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  width:134px; height:5px; border-radius:3px; background:#fff; opacity:.9; z-index:7;
+}
+
+/* ───────── comments sheet ───────── */
+.sheet{
+  position:absolute; left:0; right:0; bottom:0; height:64%; z-index:8;
+  background:#161617; border-radius:14px 14px 0 0;
+  transform:translateY(101%); transition:transform .38s cubic-bezier(.32,.72,0,1);
+  display:flex; flex-direction:column; box-shadow:0 -14px 40px rgba(0,0,0,.6);
+}
+.sheet.open{transform:translateY(0)}
+.sheet-grab{width:36px; height:4px; border-radius:2px; background:#3a3a3d; margin:9px auto 4px}
+.sheet-head{
+  display:flex; align-items:center; justify-content:center; padding:8px 16px 12px;
+  border-bottom:1px solid rgba(255,255,255,.08); position:relative;
+  font-size:14px; font-weight:600; color:#fff;
+}
+.sheet-head button{
+  position:absolute; right:12px; top:5px; background:none; border:0; color:#fff;
+  font-size:20px; cursor:pointer; line-height:1; padding:6px;
+}
+.comments{flex:1; overflow-y:auto; padding:12px 16px 16px; display:flex; flex-direction:column; gap:16px}
+.comment{display:flex; gap:10px; align-items:flex-start}
+.comment .pic{width:34px; height:34px; border-radius:50%; flex:0 0 auto; overflow:hidden}
+.comment .pic svg{width:100%; height:100%}
+.comment .body{flex:1; min-width:0}
+.comment .who{font-size:12.5px; color:#8b8b90; margin-bottom:2px}
+.comment .txt{font-size:14.5px; color:#fff; line-height:1.35; letter-spacing:-.2px}
+.comment .meta2{font-size:12px; color:#8b8b90; margin-top:5px; display:flex; gap:14px}
+.comment .meta2 button{background:none;border:0;color:#8b8b90;font:inherit;cursor:pointer;padding:0}
+.clike{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:#8b8b90;
+  background:none; border:0; cursor:pointer; padding-top:3px}
+.clike.on{color:var(--rose)}
+.composer{
+  border-top:1px solid rgba(255,255,255,.08); padding:10px 14px 14px;
+  display:flex; gap:10px; align-items:center;
+}
+.composer input{
+  flex:1; background:#242427; border:0; border-radius:8px; padding:10px 12px;
+  color:#fff; font-family:var(--ui); font-size:14px; outline:none;
+}
+.composer input::placeholder{color:#75757c}
+.composer button{
+  background:none; border:0; color:var(--rose); font-weight:700; font-size:14px; cursor:pointer;
+  opacity:.4; transition:opacity .2s;
+}
+.composer button.ready{opacity:1}
+.scrim{position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:7; opacity:0; pointer-events:none; transition:opacity .3s}
+.scrim.on{opacity:1; pointer-events:auto}
+
+.toast{
+  position:absolute; left:50%; bottom:150px; transform:translate(-50%,10px);
+  background:rgba(20,20,22,.92); backdrop-filter:blur(12px);
+  color:#fff; padding:11px 18px; border-radius:10px; z-index:9;
+  font-size:14px; font-weight:600; letter-spacing:-.2px;
+  opacity:0; pointer-events:none; transition:opacity .24s, transform .24s;
+  border:1px solid rgba(255,255,255,.1);
+}
+.toast.on{opacity:1; transform:translate(-50%,0)}
+
+/* ───────── responsive: phone becomes the whole screen ───────── */
+@media (max-width:860px){ .rail{display:none} #stage{grid-template-columns:1fr; padding:0} }
+@media (max-width:700px){
+  :root{--phone-w:100vw}
+  #device{
+    width:100vw; height:100dvh; aspect-ratio:auto; border-radius:0;
+    box-shadow:none;
+  }
+  #room{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .scene svg,.grain,.disc,.rain i,.music .marquee span,.note.go{animation:none !important}
+  *{transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div id="room"></div>
+<main id="stage">
+  <aside class="rail left">
+    <div class="block">
+      <h1>Monsoon Feed</h1>
+      <p class="lede">A short-form video feed rebuilt in one HTML file. No images, no video files &mdash; every frame is drawn from a seeded noise function at load.</p>
+    </div>
+    <div class="block">
+      <div class="eyebrow">Controls</div>
+      <div class="keys">
+        <div class="key"><span>next / prev</span><kbd>&darr;</kbd><kbd>&uarr;</kbd></div>
+        <div class="key"><span>play / pause</span><kbd>space</kbd></div>
+        <div class="key"><span>like</span><kbd>L</kbd></div>
+        <div class="key"><span>comments</span><kbd>C</kbd></div>
+        <div class="key"><span>save</span><kbd>S</kbd></div>
+      </div>
+      <p>Swipe, drag or scroll the screen. Double&#8209;tap the frame to like it.</p>
+    </div>
+  </aside>
+
+  <div id="device" tabindex="0" aria-label="Simulated short-form video feed">
+    <div class="notch"></div>
+    <div id="feed"></div>
+    <div class="chrome">
+      <div class="statusbar">
+        <div class="status-l"><span id="clock">10:19</span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.4 2.4 0 0 0 2.4-2.2H9.6A2.4 2.4 0 0 0 12 22Zm7-6.2v-4.5c0-3.1-1.7-5.7-4.5-6.4v-.7a1.5 1.5 0 1 0-3 0v.7a6.4 6.4 0 0 0-2 .9l9.1 9.1.4.9ZM3.3 2.4 2 3.7l3.2 3.2A7.4 7.4 0 0 0 5 11.3v4.5l-1.8 1.8v.9h13.3l3.8 3.8 1.3-1.3L3.3 2.4Z"/></svg>
+        </div>
+        <div class="status-r">
+          <svg width="19" height="13" viewBox="0 0 19 13" fill="currentColor" aria-hidden="true"><rect x="0" y="8.5" width="3" height="4.5" rx="1"/><rect x="4.6" y="6" width="3" height="7" rx="1"/><rect x="9.2" y="3" width="3" height="10" rx="1"/><rect x="13.8" y="0" width="3" height="13" rx="1" opacity=".38"/></svg>
+          <svg width="17" height="13" viewBox="0 0 20 15" fill="currentColor" aria-hidden="true"><path d="M10 14.2 7.2 11a3.7 3.7 0 0 1 5.6 0L10 14.2Zm-5.4-6.1a8.2 8.2 0 0 1 10.8 0l1.7-2A10.8 10.8 0 0 0 2.9 6.1l1.7 2ZM.4 3.6a13.6 13.6 0 0 1 19.2 0L18 1.7a16.2 16.2 0 0 0-16 0L.4 3.6Z"/></svg>
+          <svg width="26" height="13" viewBox="0 0 28 14" aria-hidden="true"><rect x=".6" y=".6" width="23" height="12.8" rx="4" fill="none" stroke="currentColor" stroke-opacity=".45"/><rect x="2.4" y="2.4" width="7.4" height="9.2" rx="2.4" fill="#F5C518"/><path d="M25.4 4.6a2.6 2.6 0 0 1 0 4.8V4.6Z" fill="currentColor" fill-opacity=".45"/></svg>
+        </div>
+      </div>
+
+      <nav class="topnav">
+        <button class="icon-btn" id="live-btn" aria-label="LIVE">
+          <svg width="30" height="26" viewBox="0 0 34 30" fill="none" aria-hidden="true">
+            <path d="M6 8h22a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="2.4"/>
+            <path d="m11 8 5-5m7 5-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+            <text x="17" y="22" text-anchor="middle" font-family="-apple-system,Helvetica,Arial" font-size="9.5" font-weight="800" fill="currentColor">LIVE</text>
+          </svg>
+        </button>
+        <div class="tabs" id="tabs" role="tablist" aria-label="Feed sections">
+          <button class="tab" role="tab" aria-selected="false">Community</button>
+          <button class="tab" role="tab" aria-selected="false">Fairfield</button>
+          <button class="tab" role="tab" aria-selected="false">Following</button>
+          <button class="tab" role="tab" aria-selected="false">Shop<i class="dot"></i></button>
+          <button class="tab" role="tab" aria-selected="true">For You</button>
+          <div id="tab-underline"></div>
+        </div>
+        <button class="icon-btn" id="search-btn" aria-label="Search">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" stroke="currentColor" stroke-width="2.2"/><path d="m16 16 5.5 5.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+      </nav>
+
+      <div class="scrim" id="scrim"></div>
+      <section class="sheet" id="sheet" aria-label="Comments" aria-hidden="true">
+        <div class="sheet-grab"></div>
+        <div class="sheet-head"><span id="sheet-count">1,986 comments</span><button id="sheet-close" aria-label="Close comments">&times;</button></div>
+        <div class="comments" id="comments"></div>
+        <div class="composer">
+          <input id="cinput" placeholder="Add comment..." aria-label="Add comment">
+          <button id="cpost">Post</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <nav class="tabbar" aria-label="Main">
+        <button class="nav" aria-current="page">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.1 3.4 10a1 1 0 0 0-.4.8V20a1 1 0 0 0 1 1h5.3v-6.1h5.4V21H20a1 1 0 0 0 1-1v-9.2a1 1 0 0 0-.4-.8L12 3.1Z"/></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav">
+          <svg width="26" height="26" viewBox="0 0 26 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7.4" r="4.1"/><path d="M1.6 21.4a7.4 7.4 0 0 1 14.8 0 1 1 0 0 1-1 1h-12.8a1 1 0 0 1-1-1Z"/><circle cx="18.6" cy="8.6" r="3.1" opacity=".95"/><path d="M17 13.6c3.9-.6 7.4 2 7.4 5.6a1 1 0 0 1-1 1h-4.6c.1-2.6-.6-4.9-1.8-6.6Z"/></svg>
+          <span>Friends</span><i class="badge">1</i>
+        </button>
+        <button class="nav" aria-label="Create">
+          <span class="create"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.6v10.8M2.6 8h10.8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+        </button>
+        <button class="nav" id="inbox-btn">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6c-5.4 0-9.8 3.7-9.8 8.3 0 2.6 1.4 4.9 3.6 6.4v4.1l3.9-2.2c.7.1 1.5.2 2.3.2 5.4 0 9.8-3.7 9.8-8.5S17.4 2.6 12 2.6Z"/></svg>
+          <span>Inbox</span><i class="badge">5</i>
+        </button>
+        <button class="nav">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.6" r="4.4"/><path d="M3.4 21.4a8.6 8.6 0 0 1 17.2 0 1 1 0 0 1-1 1H4.4a1 1 0 0 1-1-1Z"/></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+  <aside class="rail right">
+    <div class="block">
+      <div class="eyebrow">Now rendering</div>
+      <div class="swatches" id="spec-swatches"></div>
+      <dl class="meta">
+        <dt>scene</dt><dd id="spec-name">zion / monsoon</dd>
+        <dt>seed</dt><dd id="spec-seed">1337</dd>
+        <dt>ridges</dt><dd id="spec-layers">6 layers</dd>
+        <dt>vertices</dt><dd id="spec-verts">906</dd>
+        <dt>assets</dt><dd id="spec-assets">0 bytes</dd>
+      </dl>
+    </div>
+    <div class="block">
+      <div class="eyebrow">How it draws</div>
+      <p>Each ridge line is four summed sine octaves at a per&#8209;scene phase offset, sharpened toward the peaks and stacked back&#8209;to&#8209;front with atmospheric haze between layers. Grain, drift and rain sit on top as CSS.</p>
+    </div>
+  </aside>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ══════════════ 1. procedural scene engine ══════════════
+     Every frame in this feed is generated here. No bitmaps, no video. */
+
+  const W = 900, H = 1600;
+
+  function rng(seed) {                                  /* mulberry32 */
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const rgb = c => `#${c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
+  const mix = (a, b, t) => rgb(hex(a).map((v, i) => v + (hex(b)[i] - v) * t));
+  const dark = (c, t) => mix(c, '#000000', t);
+
+  /* One ridge line: four summed sine octaves, sharpened toward the peaks. */
+  function ridge(rand, baseY, amp, sharp) {
+    const oct = [[1, .48], [2.7, .29], [6.1, .17], [13.3, .09]];
+    const ph = oct.map(() => rand() * Math.PI * 2);
+    let d = '', n = 0;
+    for (let x = -20; x <= W + 20; x += 4) {
+      let y = 0;
+      oct.forEach(([f, a], i) => { y += Math.sin((x / W) * Math.PI * 2 * f + ph[i]) * a; });
+      y = Math.sign(y) * Math.pow(Math.abs(y), 1 - sharp * .6);
+      y += (rand() - .5) * .09 * sharp;               /* rock crumble */
+      d += `${d ? 'L' : 'M'}${x} ${(baseY + y * amp).toFixed(1)}`;
+      n++;
+    }
+    return { d: `${d}L${W + 20} ${H + 40}L-20 ${H + 40}Z`, n };
+  }
+
+  /* a vertical cliff edge: same noise, run down the frame instead of across */
+  function wall(rand, x0, x1, spread, y0) {
+    const oct = [[1.3, .5], [3.7, .31], [9.1, .19]];
+    const ph = oct.map(() => rand() * Math.PI * 2);
+    let d = '';
+    for (let y = y0; y <= H + 20; y += 16) {
+      const t = (y - y0) / (H + 20 - y0);
+      let n = 0;
+      oct.forEach(([f, a], i) => { n += Math.sin(t * Math.PI * 2 * f + ph[i]) * a; });
+      d += `${d ? 'L' : 'M'}${(x0 + (x1 - x0) * Math.pow(t, .8) + n * spread).toFixed(1)} ${y}`;
+    }
+    return d;
+  }
+
+  function build(scene) {
+    const rand = rng(scene.seed);
+    let defs = '', body = '', verts = 0;
+
+    /* sky */
+    defs += `<linearGradient id="sky-${scene.id}" x1="0" y1="0" x2="0" y2="1">` +
+      scene.sky.map((c, i) => `<stop offset="${(i / (scene.sky.length - 1) * 100).toFixed(0)}%" stop-color="${c}"/>`).join('') +
+      `</linearGradient>`;
+    body += `<rect width="${W}" height="${H}" fill="url(#sky-${scene.id})"/>`;
+
+    /* light source */
+    const s = scene.sun;
+    defs += `<radialGradient id="sun-${scene.id}"><stop offset="0%" stop-color="${s.color}" stop-opacity=".95"/>` +
+      `<stop offset="38%" stop-color="${s.color}" stop-opacity=".35"/><stop offset="100%" stop-color="${s.color}" stop-opacity="0"/></radialGradient>`;
+    body += `<circle cx="${s.x * W}" cy="${s.y * H}" r="${s.r * W}" fill="url(#sun-${scene.id})"/>`;
+    if (s.core) body += `<circle cx="${s.x * W}" cy="${s.y * H}" r="${s.core}" fill="${s.color}" opacity=".9"/>`;
+
+    if (scene.stars) {
+      for (let i = 0; i < 110; i++) {
+        const x = rand() * W, y = rand() * H * .5, r = rand() * 1.7 + .5, o = rand() * .7 + .25;
+        body += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="#fff" opacity="${o.toFixed(2)}">` +
+          `<animate attributeName="opacity" values="${o.toFixed(2)};${(o * .25).toFixed(2)};${o.toFixed(2)}" dur="${(2 + rand() * 4).toFixed(1)}s" repeatCount="indefinite"/></circle>`;
+      }
+    }
+
+    if (scene.aurora) {
+      /* aurora is a curtain, not a ribbon: vertical rays hanging off a waving baseline */
+      defs += `<filter id="soft-${scene.id}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="13"/></filter>`;
+      scene.aurora.forEach((c, i) => {
+        defs += `<linearGradient id="au${i}-${scene.id}" x1="0" y1="0" x2="0" y2="1">` +
+          `<stop offset="0%" stop-color="${c}" stop-opacity="0"/><stop offset="18%" stop-color="${c}" stop-opacity=".95"/>` +
+          `<stop offset="100%" stop-color="${mix(c, '#3A2BE0', .45)}" stop-opacity="0"/></linearGradient>`;
+        const y0 = 360 + i * 118, amp = 62 + i * 30, ph = rand() * Math.PI * 2;
+        let g = `<g filter="url(#soft-${scene.id})" opacity="${(.82 - i * .12).toFixed(2)}">`;
+        for (let x = -40; x < W + 40; x += 8) {
+          const t = x / W;
+          const y = y0 + Math.sin(t * Math.PI * 2 * 1.25 + ph) * amp + Math.sin(t * Math.PI * 2 * 3.3 + ph * 2) * amp * .3;
+          const len = 200 + Math.sin(t * Math.PI * 2 * 2.1 + ph) * 110 + rand() * 90;
+          g += `<rect x="${x}" y="${y.toFixed(0)}" width="7" height="${len.toFixed(0)}" fill="url(#au${i}-${scene.id})" opacity="${(.3 + rand() * .6).toFixed(2)}"/>`;
+        }
+        g += `<animateTransform attributeName="transform" type="translate" values="0 0; ${(22 - i * 14) | 0} ${(-16 - i * 7) | 0}; 0 0" dur="${18 + i * 6}s" repeatCount="indefinite"/>` +
+          `<animate attributeName="opacity" values="${(.82 - i * .12).toFixed(2)};${(.4 - i * .06).toFixed(2)};${(.9 - i * .12).toFixed(2)};${(.82 - i * .12).toFixed(2)}" dur="${13 + i * 4}s" repeatCount="indefinite"/></g>`;
+        body += g;
+      });
+    }
+
+    if (scene.city) {
+      defs += `<filter id="neon-${scene.id}" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7"/></filter>`;
+      const NEON = ['#25F4EE', '#FE2C55', '#FFD84D', '#B78BFF', '#4DE0A0'];
+      const floor = 1230;
+      let x = -50;
+      while (x < W + 50) {
+        const w = 46 + rand() * 104, h = 250 + rand() * 760, y = floor - h;
+        const occupancy = .3 + rand() * .55;          /* some towers are mostly dark */
+        body += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${dark(scene.city, .1 + rand() * .45)}"/>`;
+        for (let wy = y + 16; wy < floor - 16; wy += 20) {
+          for (let wx = x + 8; wx < x + w - 10; wx += 15) {
+            if (rand() > occupancy) continue;
+            body += `<rect x="${wx.toFixed(0)}" y="${wy.toFixed(0)}" width="6" height="9" fill="${rand() > .88 ? '#FFF4D2' : scene.window}" opacity="${(.42 + rand() * .56).toFixed(2)}">` +
+              (rand() > .95 ? `<animate attributeName="opacity" values=".95;.12;.95" dur="${(3 + rand() * 7).toFixed(1)}s" repeatCount="indefinite"/>` : '') + `</rect>`;
+          }
+        }
+        if (rand() > .34 && w > 58) {                  /* horizontal signboard */
+          const nc = NEON[(rand() * NEON.length) | 0], nh = 18 + rand() * 40, ny = y + 24 + rand() * (h * .5);
+          body += `<rect x="${(x + 8).toFixed(0)}" y="${ny.toFixed(0)}" width="${(w - 16).toFixed(0)}" height="${nh.toFixed(0)}" rx="4" fill="${nc}" opacity=".7" filter="url(#neon-${scene.id})"/>`;
+          body += `<rect x="${(x + 12).toFixed(0)}" y="${(ny + 4).toFixed(0)}" width="${(w - 24).toFixed(0)}" height="${(nh * .45).toFixed(0)}" rx="3" fill="${nc}" opacity=".92"/>`;
+        }
+        if (rand() > .58 && h > 420) {                 /* vertical signage down the corner */
+          const nc = NEON[(rand() * NEON.length) | 0], nl = 120 + rand() * 260, ny = y + 40 + rand() * 100;
+          body += `<rect x="${(x + w - 22).toFixed(0)}" y="${ny.toFixed(0)}" width="15" height="${nl.toFixed(0)}" rx="4" fill="${nc}" opacity=".6" filter="url(#neon-${scene.id})"/>`;
+          body += `<rect x="${(x + w - 19).toFixed(0)}" y="${(ny + 5).toFixed(0)}" width="9" height="${(nl - 10).toFixed(0)}" rx="3" fill="${nc}" opacity=".9"/>`;
+        }
+        x += w + 5 + rand() * 26;
+      }
+    }
+
+    const oceanArt = () => {
+      const oy = scene.ocean.y;
+      let out = `<rect y="${oy}" width="${W}" height="${H - oy}" fill="${scene.ocean.color}"/>`;
+      defs += `<radialGradient id="refl-${scene.id}"><stop offset="0%" stop-color="${s.color}" stop-opacity=".5"/>` +
+        `<stop offset="55%" stop-color="${s.color}" stop-opacity=".16"/><stop offset="100%" stop-color="${s.color}" stop-opacity="0"/></radialGradient>`;
+      out += `<ellipse cx="${(s.x * W).toFixed(0)}" cy="${oy + 130}" rx="180" ry="230" fill="url(#refl-${scene.id})"/>`;
+      for (let i = 0; i < 70; i++) {
+        const t = i / 70;
+        const y = oy + 6 + Math.pow(t, 1.75) * (H - oy);
+        const w = 26 + rand() * 90 + t * 150, x = rand() * (W + 120) - 60;
+        out += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${w.toFixed(0)}" height="${(1.2 + t * 3.4).toFixed(1)}" rx="${(.6 + t * 1.7).toFixed(1)}" fill="${scene.ocean.foam}" opacity="${(.08 + rand() * .18).toFixed(2)}">` +
+          `<animate attributeName="opacity" values="${(.03 + rand() * .06).toFixed(2)};${(.18 + rand() * .26).toFixed(2)};${(.03 + rand() * .06).toFixed(2)}" dur="${(4 + rand() * 7).toFixed(1)}s" repeatCount="indefinite"/></rect>`;
+      }
+      return out;
+    };
+
+    /* switchbacks on the canyon floor: headlights climbing out */
+    const roadArt = () => {
+      const p = 'M 214 1600 C 300 1452, 470 1428, 486 1330 S 336 1230, 372 1150 S 566 1104, 556 1028 S 452 972, 470 926';
+      defs += `<filter id="hot-${scene.id}" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="11"/></filter>`;
+      return `<g transform="translate(46 -168)"><path d="${p}" stroke="${scene.road}" stroke-width="20" fill="none" opacity=".7" filter="url(#hot-${scene.id})" stroke-linecap="round"/>` +
+        `<path d="${p}" stroke="#FFE7B4" stroke-width="4.4" fill="none" stroke-linecap="round" opacity=".55"/>` +
+        `<path d="${p}" stroke="#FFF6DC" stroke-width="4.6" fill="none" stroke-linecap="round" stroke-dasharray="30 200" opacity="1">` +
+        `<animate attributeName="stroke-dashoffset" from="460" to="0" dur="9s" repeatCount="indefinite"/></path>` +
+        `<path d="${p}" stroke="#FF4E2A" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-dasharray="18 250" opacity=".85">` +
+        `<animate attributeName="stroke-dashoffset" from="0" to="536" dur="13s" repeatCount="indefinite"/></path></g>`;
+    };
+
+    /* ridge stack, far to near, with haze laid between layers */
+    scene.ridges.forEach((c, i) => {
+      const t = i / (scene.ridges.length - 1);
+      const r = ridge(rand, H * (scene.base[0] + t * (scene.base[1] - scene.base[0])), 34 + t * 150, scene.sharp);
+      verts += r.n;
+      body += `<rect width="${W}" height="${H}" fill="${scene.haze}" opacity="${(scene.hazeAmt * Math.pow(1 - t, 1.4)).toFixed(3)}"/>`;
+      defs += `<linearGradient id="r${i}-${scene.id}" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0%" stop-color="${mix(c, scene.haze, .3 * (1 - t))}"/>` +
+        `<stop offset="100%" stop-color="${dark(c, .3 + t * .4)}"/></linearGradient>`;
+      body += `<path d="${r.d}" fill="url(#r${i}-${scene.id})"/>`;
+      if (scene.road && i === scene.ridges.length - 4) body += roadArt();
+      if (scene.ocean && i === 1) body += oceanArt();
+    });
+
+    if (scene.wet) {
+      const y0 = scene.wet;
+      body += `<rect y="${y0}" width="${W}" height="${H - y0}" fill="${dark(scene.ridges[scene.ridges.length - 1], .15)}"/>`;
+      const NEON = ['#25F4EE', '#FE2C55', '#FFD84D', '#B78BFF', '#FF7AC8'];
+      for (let i = 0; i < 34; i++) {
+        const x = rand() * W, w = 7 + rand() * 30, h = 70 + rand() * 240;
+        body += `<rect x="${x.toFixed(0)}" y="${y0}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" rx="4" fill="${NEON[(rand() * NEON.length) | 0]}" opacity="${(.05 + rand() * .15).toFixed(2)}"/>`;
+      }
+      defs += `<linearGradient id="wet-${scene.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".85"/></linearGradient>`;
+      body += `<rect y="${y0}" width="${W}" height="${H - y0}" fill="url(#wet-${scene.id})"/>`;
+    }
+
+    if (scene.walls) {
+      /* the canyon you are standing in, framing both edges */
+      const w0 = dark(scene.ridges[scene.ridges.length - 1], .35);
+      defs += `<linearGradient id="wall-${scene.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${mix(w0, scene.haze, .16)}"/><stop offset="100%" stop-color="${dark(w0, .6)}"/></linearGradient>`;
+      body += `<path d="M-30 520 L${wall(rand, 26, 286, 30, 520).slice(1)} L-30 ${H + 20} Z" fill="url(#wall-${scene.id})"/>`;
+      body += `<path d="M${W + 30} 430 L${wall(rand, W - 14, W - 322, 34, 430).slice(1)} L${W + 30} ${H + 20} Z" fill="url(#wall-${scene.id})"/>`;
+    }
+
+    if (scene.birds) {
+      const fx = 400 + rand() * 200, fy = 320 + rand() * 110;
+      for (let i = 0; i < 9; i++) {
+        const x = fx + (rand() - .5) * 300, y = fy + (rand() - .5) * 170, sc = (.32 + rand() * .5).toFixed(2);
+        body += `<g transform="translate(${x.toFixed(0)} ${y.toFixed(0)}) scale(${sc})">` +
+          `<path d="M0 0 q 9 -7 18 0 q 9 -7 18 0" fill="none" stroke="#31120A" stroke-opacity=".62" stroke-width="2.6" stroke-linecap="round"/>` +
+          `<animateTransform attributeName="transform" type="translate" additive="sum" values="0 0; ${(40 + rand() * 70) | 0} ${(-18 - rand() * 34) | 0}; 0 0" dur="${(15 + rand() * 12) | 0}s" repeatCount="indefinite"/></g>`;
+      }
+    }
+
+    return {
+      svg: `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`,
+      verts
+    };
+  }
+
+  /* ══════════════ 2. the feed's content ══════════════ */
+
+  const POSTS = [
+    {
+      id: 'zion', seed: 1337, name: 'zion / monsoon',
+      author: 'Cam | Travel & Adventure', handle: '@camwanders',
+      caption: 'Monsoon sunsets in Zion 🤯 Hiked up to Zion Canyon Overlook for the sun and the whole sky went nuclear for about nine minutes. Then it dumped rain on us the entire way down. Still the best light I have ever stood in.',
+      tags: ['#zion', '#monsoonseason', '#utah', '#hikingtok'],
+      music: 'original sound - Cam | Travel & Adventure',
+      stats: { like: 334200, comment: 1986, save: 53900, share: 40200 },
+      glow: '#FF6B1A', dur: 21,
+      sky: ['#D9490A', '#F2700F', '#FF9526', '#FFC061', '#E97A22'],
+      sun: { x: .52, y: .38, r: .5, color: '#FFEFC0' },
+      ridges: ['#B2451A', '#8A3113', '#5E200D', '#3C1408', '#230B05', '#120503'],
+      base: [.42, .9], sharp: .55, haze: '#FF9A4D', hazeAmt: .34,
+      road: '#FF7A2E', birds: true, walls: true, rain: 26,
+      comments: [
+        ['@sarahonthetrail', 'the way the whole canyon turned copper 😭 what time did you start the hike?', '2h', 1204],
+        ['@utahparks', 'Monsoon season is unmatched. Careful with flash floods in the narrows though!', '4h', 892],
+        ['@jklein', 'ok but nine minutes of light and you nailed the exposure. respect', '5h', 341],
+        ['@mel.hikes', 'adding this to the october list immediately', '7h', 88]
+      ]
+    },
+    {
+      id: 'bigsur', seed: 24601, name: 'big sur / blue hour',
+      author: 'Nadia Reyes', handle: '@nadiashoots',
+      caption: 'Pulled over at the last turnout before the fog rolled in. Blue hour on Highway 1 lasts about eleven minutes and then it is just wind and headlights.',
+      tags: ['#bigsur', '#bluehour', '#highway1', '#coastal'],
+      music: 'Slow Tide - Hollow Coves',
+      stats: { like: 128400, comment: 742, save: 21300, share: 9840 },
+      glow: '#5B7FD4', dur: 18,
+      sky: ['#2A3768', '#6B5A94', '#B67C9C', '#F0A981', '#FFC79B'],
+      sun: { x: .3, y: .53, r: .38, color: '#FFD9A8', core: 22 },
+      ridges: ['#4A5788', '#33406B', '#222C4D', '#141B32', '#080C18'],
+      base: [.5, .93], sharp: .3, haze: '#A9BCE4', hazeAmt: .3,
+      ocean: { y: 902, color: '#22305A', foam: '#D6E2FA' },
+      comments: [
+        ['@coasthwy', 'that turnout right before Bixby? best pullout on the whole road', '1h', 640],
+        ['@fogchaser', 'eleven minutes is generous lol', '3h', 218],
+        ['@ana.p', 'the color grade here is doing something to my brain', '6h', 97]
+      ]
+    },
+    {
+      id: 'vestrahorn', seed: 90210, name: 'vestrahorn / aurora',
+      author: 'Kári Þór', handle: '@kari.north',
+      caption: 'Kp5 over Vestrahorn at 01:40. Stood in the black sand for two hours in -8°C waiting for this and it lasted maybe forty seconds.',
+      tags: ['#aurora', '#iceland', '#northernlights', '#nightsky'],
+      music: 'ambient pad - kari.north',
+      stats: { like: 891300, comment: 5412, save: 204100, share: 76500 },
+      glow: '#2FD68A', dur: 24,
+      sky: ['#04121C', '#062232', '#083046', '#0A2136', '#04101A'],
+      sun: { x: .76, y: .22, r: .24, color: '#3FA890' },
+      stars: true, aurora: ['#3BF0A0', '#37D9E8', '#7A6BF0'],
+      ridges: ['#123B50', '#0C2537', '#071825', '#040E16', '#01060A'],
+      base: [.58, .95], sharp: .8, haze: '#0E4457', hazeAmt: .07,
+      comments: [
+        ['@northernlightsdaily', 'Kp5 and clear skies at Vestrahorn is a once-a-season combo. Beautiful.', '30m', 3110],
+        ['@thora.j', 'forty seconds and worth every one of them', '2h', 940],
+        ['@camwanders', 'this is unreal 🔥', '3h', 612]
+      ]
+    },
+    {
+      id: 'shibuya', seed: 5150, name: 'shibuya / rain',
+      author: 'Tomo Aihara', handle: '@tomo.walks',
+      caption: 'Rain in Shibuya makes every sign twice as bright because it all comes back up off the pavement. Thirty minute walk, no destination.',
+      tags: ['#tokyo', '#shibuya', '#neon', '#nightwalk'],
+      music: 'city pop loop - tomo.walks',
+      stats: { like: 452800, comment: 3204, save: 88700, share: 31900 },
+      glow: '#E0499B', dur: 20,
+      sky: ['#0A0410', '#1C0722', '#3A0C34', '#5E1440', '#822052'],
+      sun: { x: .58, y: .68, r: .42, color: '#FF6FB4' },
+      city: '#1E0A26', window: '#FFC96B',
+      ridges: ['#2A0B31', '#170618', '#08020A'],
+      base: [.8, .95], sharp: .35, haze: '#8A2A63', hazeAmt: .08, rain: 34, wet: 1236,
+      comments: [
+        ['@nightbus', 'the wet pavement bounce is the whole aesthetic', '1h', 1502],
+        ['@aiko', 'which crossing is this? looks like the one by the station', '2h', 733],
+        ['@tomo.walks', '@aiko yes, north side exit 👌', '2h', 410]
+      ]
+    }
+  ];
+
+  const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'K' : n.toLocaleString('en-US');
+
+  /* deterministic little gradient portraits, so avatars need no files either */
+  function face(seed) {
+    const r = rng(seed);
+    const a = `hsl(${(r() * 360) | 0} 72% 62%)`, b = `hsl(${(r() * 360) | 0} 68% 38%)`;
+    return `<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="f${seed}" x1="0" y1="0" x2="1" y2="1">` +
+      `<stop offset="0%" stop-color="${a}"/><stop offset="100%" stop-color="${b}"/></linearGradient></defs>` +
+      `<rect width="40" height="40" fill="url(#f${seed})"/><circle cx="20" cy="15.5" r="6.4" fill="rgba(255,255,255,.9)"/>` +
+      `<path d="M6 40c0-8 6.4-13 14-13s14 5 14 13Z" fill="rgba(255,255,255,.85)"/></svg>`;
+  }
+
+  const ICON = {
+    heart: '<svg width="41" height="38" viewBox="0 0 24 22" fill="currentColor"><path d="M12 21.4C6.6 17.6 1 13.4 1 7.9 1 4.4 3.7 2 6.9 2c1.9 0 3.8 1 5.1 2.6C13.3 3 15.2 2 17.1 2 20.3 2 23 4.4 23 7.9c0 5.5-5.6 9.7-11 13.5Z"/></svg>',
+    comment: '<svg width="40" height="38" viewBox="0 0 24 22" fill="currentColor"><path d="M12 1.2C5.9 1.2 1 5.3 1 10.4c0 2.9 1.6 5.5 4.1 7.2l-.9 3.6 4-2.1c1.2.3 2.5.5 3.8.5 6.1 0 11-4.1 11-9.2S18.1 1.2 12 1.2Z"/><circle cx="7.4" cy="10.4" r="1.5" fill="#000" fill-opacity=".55"/><circle cx="12" cy="10.4" r="1.5" fill="#000" fill-opacity=".55"/><circle cx="16.6" cy="10.4" r="1.5" fill="#000" fill-opacity=".55"/></svg>',
+    save: '<svg width="34" height="38" viewBox="0 0 20 24" fill="currentColor" class="bookmark-fill"><path d="M3 1.6h14a1 1 0 0 1 1 1v19.2a.8.8 0 0 1-1.25.66L10 17.7l-6.75 4.76A.8.8 0 0 1 2 21.8V2.6a1 1 0 0 1 1-1Z"/></svg>',
+    share: '<svg width="42" height="38" viewBox="0 0 24 22" fill="currentColor"><path d="M23 10.6 12.4 1.4a.8.8 0 0 0-1.33.6v3.9C4.9 6.5 1 11 1 20c2.6-5.4 6-7.4 10.07-7.4v4.2a.8.8 0 0 0 1.33.6L23 10.6Z"/></svg>'
+  };
+
+  /* ══════════════ 3. render the feed ══════════════ */
+
+  const feed = document.getElementById('feed');
+  const root = document.documentElement;
+
+  POSTS.forEach((p, i) => {
+    const built = build(p);
+    p._verts = built.verts;
+    const el = document.createElement('article');
+    el.className = 'post paused';
+    el.dataset.index = i;
+    el.innerHTML = `
+      <div class="scene">${built.svg}<div class="grain"></div>${p.rain ? `<div class="rain">${
+        Array.from({ length: p.rain }, () => {
+          const l = Math.random() * 110 - 5, d = (.5 + Math.random() * .55).toFixed(2), dl = (Math.random() * -2).toFixed(2), o = (.25 + Math.random() * .75).toFixed(2), h = (40 + Math.random() * 70) | 0;
+          return `<i style="left:${l.toFixed(1)}%;animation-duration:${d}s;animation-delay:${dl}s;opacity:${o};height:${h}px"></i>`;
+        }).join('')}</div>` : ''}</div>
+      <button class="tapzone" aria-label="Play or pause"></button>
+      <div class="playglyph"><svg width="76" height="86" viewBox="0 0 76 86" fill="rgba(255,255,255,.62)"><path d="M8 4.6 70 43 8 81.4Z"/></svg></div>
+
+      <div class="actions">
+        <div class="avatar-wrap">
+          <span class="avatar">${face(p.seed + 7)}</span>
+          <button class="follow" data-act="follow" aria-label="Follow ${p.author}">+</button>
+        </div>
+        <button class="act" data-act="like" aria-pressed="false" aria-label="Like">${ICON.heart}<span data-count="like">${fmt(p.stats.like)}</span></button>
+        <button class="act" data-act="comment" aria-label="Comments">${ICON.comment}<span data-count="comment">${fmt(p.stats.comment)}</span></button>
+        <button class="act" data-act="save" aria-pressed="false" aria-label="Save">${ICON.save}<span data-count="save">${fmt(p.stats.save)}</span></button>
+        <button class="act" data-act="share" aria-label="Share">${ICON.share}<span data-count="share">${fmt(p.stats.share)}</span></button>
+        <div class="disc"><span class="label">${face(p.seed + 31)}</span></div>
+        <span class="note a">&#9834;</span><span class="note b">&#9835;</span>
+      </div>
+
+      <div class="info">
+        <button class="repost" data-act="repost">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7.5h11.5a2.5 2.5 0 0 1 2.5 2.5v1.5M17 12.5h-11.5A2.5 2.5 0 0 1 3 10V8.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="m5.5 5 -2.5 2.5 2.5 2.5M14.5 10l2.5 2.5-2.5 2.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Repost to followers</span>
+        </button>
+        <div class="author">${p.author}</div>
+        <p class="caption" data-full="${(p.caption + ' ' + p.tags.join(' ')).replace(/"/g, '&quot;')}"></p>
+        <div class="music">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6 12.6a2.4 2.4 0 1 1-1.6-2.26V3.4l9-2v7.9a2.4 2.4 0 1 1-1.6-2.26V3.9L6 5.2v7.4Z"/></svg>
+          <span class="marquee"><span>${p.music} &nbsp;&middot;&nbsp; ${p.music} &nbsp;&middot;&nbsp; </span></span>
+        </div>
+      </div>
+
+      <div class="scrub" data-index="${i}">
+        <div class="timecode">0:00 / ${Math.floor(p.dur / 60)}:${String(p.dur % 60).padStart(2, '0')}</div>
+        <div class="track"><div class="fill"></div><div class="knob"></div></div>
+      </div>`;
+    feed.appendChild(el);
+  });
+
+  /* ══════════════ 4. behaviour ══════════════ */
+
+  const posts = [...feed.querySelectorAll('.post')];
+  const state = POSTS.map(p => ({ t: 0, playing: false, like: false, save: false, follow: false, repost: false, extra: [] }));
+  let active = 0, scrubbing = -1;
+
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  const toast = msg => {
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('on'), 1700);
+  };
+
+  const countEl = (i, k) => posts[i].querySelector(`[data-count="${k}"]`);
+  const bump = (i, k, delta) => { POSTS[i].stats[k] += delta; countEl(i, k).textContent = fmt(POSTS[i].stats[k]); };
+
+  /* ── which post is on screen ── */
+  const spec = {
+    name: document.getElementById('spec-name'), seed: document.getElementById('spec-seed'),
+    layers: document.getElementById('spec-layers'), verts: document.getElementById('spec-verts'),
+    sw: document.getElementById('spec-swatches')
+  };
+
+  function setActive(i) {
+    if (i === active && posts[i].dataset.init) return;
+    active = i;
+    posts.forEach((el, n) => el.classList.toggle('paused', n !== i || !state[n].playing));
+    posts[i].dataset.init = '1';
+    const p = POSTS[i];
+    root.style.setProperty('--glow', p.glow);
+    spec.name.textContent = p.name;
+    spec.seed.textContent = p.seed;
+    spec.layers.textContent = `${p.ridges.length} layers`;
+    spec.verts.textContent = p._verts.toLocaleString('en-US');
+    spec.sw.innerHTML = [...p.sky.slice(0, 3), ...p.ridges.slice(0, 3)]
+      .map(c => `<i class="sw" style="background:${c}"></i>`).join('');
+    document.getElementById('sheet-count').textContent = `${fmt(p.stats.comment)} comments`;
+    if (sheet.classList.contains('open')) renderComments(i);
+  }
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio > .6) {
+        const i = +e.target.dataset.index;
+        state.forEach((s, n) => { if (n !== i) { s.playing = false; } });
+        state[i].playing = true;
+        setActive(i);
+      }
+    });
+  }, { root: feed, threshold: [.61] });
+  posts.forEach(el => io.observe(el));
+
+  /* ── playback clock ── */
+  let last = performance.now();
+  function tick(now) {
+    const dt = (now - last) / 1000; last = now;
+    const s = state[active], p = POSTS[active];
+    if (s.playing && scrubbing < 0) {
+      s.t = (s.t + dt) % p.dur;
+      paint(active);
+    }
+    requestAnimationFrame(tick);
+  }
+  function paint(i) {
+    const s = state[i], p = POSTS[i], el = posts[i];
+    const pct = (s.t / p.dur) * 100;
+    el.querySelector('.fill').style.width = pct + '%';
+    el.querySelector('.knob').style.left = pct + '%';
+    const cur = Math.floor(s.t);
+    el.querySelector('.timecode').textContent =
+      `${Math.floor(cur / 60)}:${String(cur % 60).padStart(2, '0')} / ${Math.floor(p.dur / 60)}:${String(p.dur % 60).padStart(2, '0')}`;
+  }
+  requestAnimationFrame(tick);
+
+  function togglePlay(i, force) {
+    const s = state[i];
+    s.playing = force !== undefined ? force : !s.playing;
+    posts[i].classList.toggle('paused', !s.playing);
+  }
+
+  /* ── likes, saves, shares ── */
+  function like(i, on) {
+    const s = state[i], btn = posts[i].querySelector('[data-act="like"]');
+    if (on !== undefined && s.like === on) return;
+    s.like = on !== undefined ? on : !s.like;
+    btn.classList.toggle('on', s.like);
+    btn.setAttribute('aria-pressed', String(s.like));
+    btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+    bump(i, 'like', s.like ? 1 : -1);
+  }
+
+  function heartBurst(el, x, y) {
+    const b = document.createElement('div');
+    b.className = 'burst';
+    b.style.left = x + 'px'; b.style.top = y + 'px';
+    b.innerHTML = '<svg width="112" height="104" viewBox="0 0 24 22" fill="currentColor"><path d="M12 21.4C6.6 17.6 1 13.4 1 7.9 1 4.4 3.7 2 6.9 2c1.9 0 3.8 1 5.1 2.6C13.3 3 15.2 2 17.1 2 20.3 2 23 4.4 23 7.9c0 5.5-5.6 9.7-11 13.5Z"/></svg>';
+    el.appendChild(b);
+    setTimeout(() => b.remove(), 1000);
+  }
+
+  /* ── delegated clicks ── */
+  feed.addEventListener('click', e => {
+    const post = e.target.closest('.post'); if (!post) return;
+    const i = +post.dataset.index;
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      const kind = act.dataset.act;
+      if (kind === 'like') like(i);
+      else if (kind === 'save') {
+        state[i].save = !state[i].save;
+        act.classList.toggle('on', state[i].save);
+        act.setAttribute('aria-pressed', String(state[i].save));
+        act.classList.remove('pop'); void act.offsetWidth; act.classList.add('pop');
+        bump(i, 'save', state[i].save ? 1 : -1);
+        toast(state[i].save ? 'Added to Favorites' : 'Removed from Favorites');
+      } else if (kind === 'share') { bump(i, 'share', 1); toast('Link copied'); }
+      else if (kind === 'comment') openSheet(i);
+      else if (kind === 'follow') {
+        state[i].follow = !state[i].follow;
+        act.classList.toggle('done', state[i].follow);
+        act.innerHTML = state[i].follow ? '&#10003;' : '+';
+        toast(state[i].follow ? `Following ${POSTS[i].handle}` : `Unfollowed ${POSTS[i].handle}`);
+      } else if (kind === 'repost') {
+        state[i].repost = !state[i].repost;
+        act.classList.toggle('done', state[i].repost);
+        act.querySelector('span').textContent = state[i].repost ? 'Reposted' : 'Repost to followers';
+        toast(state[i].repost ? 'Reposted to your followers' : 'Repost removed');
+      }
+      return;
+    }
+    const cap = e.target.closest('.caption');
+    if (cap) { drawCaption(cap, cap.classList.toggle('open')); }
+  });
+
+  /* ── captions clamp to two lines with an inline "more" ── */
+  function drawCaption(cap, open) {
+    const full = cap.dataset.full;
+    if (open) {
+      cap.innerHTML = full.replace(/(#[\w]+)/g, '<span class="tag">$1</span>') + ' <span class="more">less</span>';
+    } else {
+      const cut = full.length > 96 ? full.slice(0, 96).replace(/\s+\S*$/, '') + '…' : full;
+      cap.innerHTML = cut.replace(/(#[\w]+)/g, '<span class="tag">$1</span>') +
+        (full.length > 96 ? ' <span class="more">more</span>' : '');
+    }
+  }
+  posts.forEach(post => drawCaption(post.querySelector('.caption'), false));
+
+  /* ── tap zone: single tap pauses, double tap likes ── */
+  posts.forEach((post, i) => {
+    const zone = post.querySelector('.tapzone');
+    let lastTap = 0, pending;
+    zone.addEventListener('click', e => {
+      const now = Date.now();
+      const r = post.getBoundingClientRect();
+      if (now - lastTap < 300) {
+        clearTimeout(pending);
+        lastTap = 0;
+        like(i, true);
+        heartBurst(post, e.clientX - r.left, e.clientY - r.top);
+      } else {
+        lastTap = now;
+        pending = setTimeout(() => togglePlay(i), 260);
+      }
+    });
+  });
+
+  /* ── scrubbing the progress bar ── */
+  posts.forEach((post, i) => {
+    const bar = post.querySelector('.scrub');
+    const seek = clientX => {
+      const r = bar.getBoundingClientRect();
+      state[i].t = Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * POSTS[i].dur;
+      paint(i);
+    };
+    bar.addEventListener('pointerdown', e => {
+      scrubbing = i; bar.classList.add('live'); bar.setPointerCapture(e.pointerId); seek(e.clientX);
+    });
+    bar.addEventListener('pointermove', e => { if (scrubbing === i) seek(e.clientX); });
+    const end = () => { if (scrubbing === i) { scrubbing = -1; bar.classList.remove('live'); } };
+    bar.addEventListener('pointerup', end);
+    bar.addEventListener('pointercancel', end);
+  });
+
+  /* ── comments sheet ── */
+  const sheet = document.getElementById('sheet');
+  const scrim = document.getElementById('scrim');
+  const list = document.getElementById('comments');
+  const cinput = document.getElementById('cinput');
+  const cpost = document.getElementById('cpost');
+
+  function renderComments(i) {
+    const rows = [...POSTS[i].comments.map(c => ({ who: c[0], txt: c[1], age: c[2], likes: c[3] })), ...state[i].extra];
+    list.innerHTML = rows.map((c, n) => `
+      <div class="comment">
+        <span class="pic">${face(POSTS[i].seed + n * 13 + 3)}</span>
+        <div class="body">
+          <div class="who">${c.who}</div>
+          <div class="txt">${c.txt}</div>
+          <div class="meta2"><span>${c.age}</span><button>Reply</button></div>
+        </div>
+        <button class="clike" aria-label="Like comment">
+          <svg width="19" height="18" viewBox="0 0 24 22" fill="currentColor"><path d="M12 21.4C6.6 17.6 1 13.4 1 7.9 1 4.4 3.7 2 6.9 2c1.9 0 3.8 1 5.1 2.6C13.3 3 15.2 2 17.1 2 20.3 2 23 4.4 23 7.9c0 5.5-5.6 9.7-11 13.5Z"/></svg>
+          <span>${fmt(c.likes)}</span>
+        </button>
+      </div>`).join('');
+  }
+  list.addEventListener('click', e => {
+    const b = e.target.closest('.clike'); if (!b) return;
+    const on = b.classList.toggle('on');
+    const s = b.querySelector('span');
+    const n = (s.dataset.n ? +s.dataset.n : parseInt(s.textContent.replace(/[^\d]/g, ''), 10)) + (on ? 1 : -1);
+    s.dataset.n = n; s.textContent = fmt(n);
+  });
+  function openSheet(i) {
+    renderComments(i);
+    sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+    scrim.classList.add('on');
+    cinput.focus({ preventScroll: true });
+  }
+  function closeSheet() {
+    sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true');
+    scrim.classList.remove('on');
+  }
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+  scrim.addEventListener('click', closeSheet);
+  cinput.addEventListener('input', () => cpost.classList.toggle('ready', cinput.value.trim().length > 0));
+  const submit = () => {
+    const v = cinput.value.trim(); if (!v) return;
+    state[active].extra.push({ who: '@you', txt: v, age: 'now', likes: 0 });
+    bump(active, 'comment', 1);
+    document.getElementById('sheet-count').textContent = `${fmt(POSTS[active].stats.comment)} comments`;
+    cinput.value = ''; cpost.classList.remove('ready');
+    renderComments(active);
+    list.scrollTop = list.scrollHeight;
+  };
+  cpost.addEventListener('click', submit);
+  cinput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+
+  /* ── top tabs ── */
+  const tabs = document.getElementById('tabs');
+  const underline = document.getElementById('tab-underline');
+  const placeUnderline = () => {
+    const sel = tabs.querySelector('[aria-selected="true"]');
+    underline.style.width = sel.offsetWidth + 'px';
+    underline.style.transform = `translateX(${sel.offsetLeft}px)`;
+  };
+  tabs.addEventListener('click', e => {
+    const t = e.target.closest('.tab'); if (!t) return;
+    tabs.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    placeUnderline();
+    t.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    if (t.textContent.trim() !== 'For You') toast(`${t.textContent.replace(/\s+$/, '')} is not part of this demo`);
+  });
+  requestAnimationFrame(() => { tabs.scrollLeft = tabs.scrollWidth; placeUnderline(); });
+  window.addEventListener('resize', placeUnderline);
+
+  /* ── chrome buttons ── */
+  document.getElementById('live-btn').addEventListener('click', () => toast('LIVE has nothing scheduled'));
+  document.getElementById('search-btn').addEventListener('click', () => toast('Search is not wired up'));
+  document.querySelectorAll('.tabbar .nav').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.tabbar .nav').forEach(b => b.removeAttribute('aria-current'));
+    btn.setAttribute('aria-current', 'page');
+    const label = btn.querySelector('span:not(.create)');
+    if (label && label.textContent !== 'Home') toast(`${label.textContent} is not part of this demo`);
+    const badge = btn.querySelector('.badge'); if (badge) badge.remove();
+  }));
+
+  /* ── keyboard ── */
+  const go = dir => {
+    const next = Math.max(0, Math.min(posts.length - 1, active + dir));
+    posts[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') closeSheet(); return; }
+    const k = e.key.toLowerCase();
+    if (k === 'arrowdown' || k === 'j') { e.preventDefault(); go(1); }
+    else if (k === 'arrowup' || k === 'k') { e.preventDefault(); go(-1); }
+    else if (k === ' ') { e.preventDefault(); togglePlay(active); }
+    else if (k === 'l') { like(active); const r = posts[active].getBoundingClientRect(); if (state[active].like) heartBurst(posts[active], r.width / 2, r.height / 2); }
+    else if (k === 'c') { e.preventDefault(); sheet.classList.contains('open') ? closeSheet() : openSheet(active); }
+    else if (k === 's') { posts[active].querySelector('[data-act="save"]').click(); }
+    else if (k === 'escape') closeSheet();
+  });
+
+  /* ── drag to swipe on desktop ── */
+  let dragY = null, dragStart = 0;
+  feed.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch' || e.target.closest('.scrub, .sheet')) return;
+    dragY = e.clientY; dragStart = feed.scrollTop;
+  });
+  feed.addEventListener('pointermove', e => {
+    if (dragY === null) return;
+    feed.scrollTop = dragStart - (e.clientY - dragY);
+  });
+  const dragEnd = () => {
+    if (dragY === null) return;
+    dragY = null;
+    const h = feed.clientHeight;
+    feed.scrollTo({ top: Math.round(feed.scrollTop / h) * h, behavior: 'smooth' });
+  };
+  window.addEventListener('pointerup', dragEnd);
+  window.addEventListener('pointercancel', dragEnd);
+
+  /* ── live status-bar clock ── */
+  const clock = document.getElementById('clock');
+  const setClock = () => {
+    const d = new Date();
+    clock.textContent = `${((d.getHours() % 12) || 12)}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  setClock(); setInterval(setClock, 10000);
+
+  /* first frame */
+  setActive(0);
+  state[0].playing = true;
+  posts[0].classList.remove('paused');
+})();
+</script>
+</body>
+</html>
