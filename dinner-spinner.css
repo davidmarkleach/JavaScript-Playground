@@ -51,6 +51,37 @@ body {
 	color: #a0667d;
 }
 
+/* ---------- Category tabs ---------- */
+
+.ds-tabs {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin-bottom: 18px;
+	flex-wrap: wrap;
+}
+
+.ds-tab {
+	font-family: inherit;
+	font-size: 14px;
+	border: 1px solid #f0c9d4;
+	border-radius: 999px;
+	padding: 8px 15px;
+	background: #fdeef2;
+	color: #a84a64;
+	cursor: pointer;
+	transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ds-tab.active {
+	background: #c2344f;
+	border-color: #c2344f;
+	color: #fff;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(194, 52, 79, 0.35);
+	transform: translateY(-1px);
+}
+
 /* ---------- Wheel ---------- */
 
 .ds-main {

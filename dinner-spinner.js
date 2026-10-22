@@ -1,7 +1,8 @@
-// What Are We Eatin'? — a dinner spinner stacked with Long Island
-// Italian-American classics. Tap the wheel, let fate (and nonna) decide.
+// What Are We Eatin'? — a dinner spinner with Long Island Italian-American
+// classics, Trader Joe's freezer heroes, and a chaos mode that mixes both.
+// Tap the wheel, let fate (and nonna, and Joe) decide.
 
-const MEALS = [
+const ITALIAN_MEALS = [
 	{
 		label: "Chicken Cutlet Parm",
 		name: "Chicken Cutlet Parm",
@@ -64,6 +65,75 @@ const MEALS = [
 	},
 ];
 
+const TJS_MEALS = [
+	{
+		label: "Orange Chicken",
+		name: "Mandarin Orange Chicken",
+		emoji: "🍊",
+		line: "The undefeated champ of the TJ's freezer. Respect the classic.",
+	},
+	{
+		label: "Soup Dumplings",
+		name: "Pork & Ginger Soup Dumplings",
+		emoji: "🥟",
+		line: "Six minutes to magic. Careful — they're basically lava.",
+	},
+	{
+		label: "Tikka Masala",
+		name: "Chicken Tikka Masala",
+		emoji: "🍛",
+		line: "The four-dollar masterpiece. Throw in the garlic naan, don't be a hero.",
+	},
+	{
+		label: "Cauli Gnocchi",
+		name: "Cauliflower Gnocchi",
+		emoji: "🥦",
+		line: "Pan-fry them crispy. The microwave route is a cry for help.",
+	},
+	{
+		label: "Japchae",
+		name: "Japchae Glass Noodles",
+		emoji: "🍜",
+		line: "Sweet, chewy, gone in four minutes flat.",
+	},
+	{
+		label: "Kung Pao Chicken",
+		name: "Kung Pao Chicken",
+		emoji: "🌶️",
+		line: "Spicy enough to feel alive, lazy enough to stay on the couch.",
+	},
+	{
+		label: "Hatch Chile Mac",
+		name: "Hatch Chile Mac & Cheese",
+		emoji: "🧀",
+		line: "Comfort food with a little attitude. Relatable.",
+	},
+	{
+		label: "Butter Chicken",
+		name: "Butter Chicken with Basmati",
+		emoji: "🧈",
+		line: "Rich, cozy, zero effort. The freezer provides.",
+	},
+	{
+		label: "Fried Rice",
+		name: "Vegetable Fried Rice",
+		emoji: "🍚",
+		line: "The loyal sidekick. Crack an egg on top and call it gourmet.",
+	},
+	{
+		label: "Beef Birria",
+		name: "Beef Birria",
+		emoji: "🌮",
+		line: "Dippable, droppable, unstoppable.",
+	},
+];
+
+const CATEGORIES = {
+	italian: { title: "Italian Night", meals: ITALIAN_MEALS },
+	tjs: { title: "TJ's Freezer", meals: TJS_MEALS },
+	all: { title: "Surprise Me", meals: ITALIAN_MEALS.concat(TJS_MEALS) },
+};
+
 const SLICE_COLORS = [
 	"#f7a6b9",
 	"#fdebc8",
@@ -82,6 +152,7 @@ const SPIN_HINTS = [
 	"The wheel never lies…",
 	"Hold ya hoops…",
 	"Stirring the gravy…",
+	"Shaking the freezer aisle…",
 ];
 
 const ACCEPT_LINES = [
@@ -97,13 +168,27 @@ const spinBtn = document.getElementById("spin-btn");
 const hint = document.getElementById("hint");
 const resultOverlay = document.getElementById("result-overlay");
 const acceptOverlay = document.getElementById("accept-overlay");
+const tabBar = document.getElementById("cat-tabs");
+
+let activeCat = "italian";
+try {
+	if (CATEGORIES[localStorage.getItem("dinnerSpinner.cat")]) {
+		activeCat = localStorage.getItem("dinnerSpinner.cat");
+	}
+} catch (e) {
+	/* private mode etc. */
+}
 
 let rotation = Math.random() * Math.PI * 2; // current wheel angle (radians)
 let spinning = false;
 let cssSize = 0;
 
-const ARC = (Math.PI * 2) / MEALS.length;
+const TAU = Math.PI * 2;
 const POINTER_ANGLE = -Math.PI / 2; // pointer sits at 12 o'clock
+
+function activeMeals() {
+	return CATEGORIES[activeCat].meals;
+}
 
 function sizeCanvas() {
 	cssSize = Math.min(window.innerWidth - 70, 440);
@@ -117,18 +202,20 @@ function sizeCanvas() {
 }
 
 function draw() {
+	const meals = activeMeals();
+	const arc = TAU / meals.length;
 	const r = cssSize / 2;
 	ctx.clearRect(0, 0, cssSize, cssSize);
 	ctx.save();
 	ctx.translate(r, r);
 	ctx.rotate(rotation);
 
-	MEALS.forEach((meal, i) => {
-		const start = i * ARC;
+	meals.forEach((meal, i) => {
+		const start = i * arc;
 		// slice
 		ctx.beginPath();
 		ctx.moveTo(0, 0);
-		ctx.arc(0, 0, r, start, start + ARC);
+		ctx.arc(0, 0, r, start, start + arc);
 		ctx.closePath();
 		ctx.fillStyle = SLICE_COLORS[i % SLICE_COLORS.length];
 		ctx.fill();
@@ -138,15 +225,14 @@ function draw() {
 
 		// label along the slice's middle radius
 		ctx.save();
-		ctx.rotate(start + ARC / 2);
+		ctx.rotate(start + arc / 2);
 		ctx.textAlign = "right";
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = "#5b3644";
-		const fontSize = Math.max(10, Math.round(cssSize * 0.028));
+		const scale = meals.length > 12 ? 0.023 : 0.028;
+		const fontSize = Math.max(9, Math.round(cssSize * scale));
 		ctx.font = "700 " + fontSize + "px 'Avenir Next', 'Segoe UI', sans-serif";
 		ctx.fillText(meal.label, r - 14, 0);
-		ctx.font = Math.round(fontSize * 1.5) + "px sans-serif";
-		ctx.textAlign = "left";
 		ctx.restore();
 	});
 
@@ -155,9 +241,10 @@ function draw() {
 
 function winnerIndex() {
 	// which slice currently sits under the pointer
-	let angle = (POINTER_ANGLE - rotation) % (Math.PI * 2);
-	if (angle < 0) angle += Math.PI * 2;
-	return Math.floor(angle / ARC) % MEALS.length;
+	const arc = TAU / activeMeals().length;
+	let angle = (POINTER_ANGLE - rotation) % TAU;
+	if (angle < 0) angle += TAU;
+	return Math.floor(angle / arc) % activeMeals().length;
 }
 
 function spin() {
@@ -168,7 +255,7 @@ function spin() {
 
 	const startRotation = rotation;
 	const extraTurns = 4 + Math.random() * 3; // 4–7 full spins
-	const target = startRotation + extraTurns * Math.PI * 2 + Math.random() * Math.PI * 2;
+	const target = startRotation + extraTurns * TAU + Math.random() * TAU;
 	const duration = 4200 + Math.random() * 800;
 	const startTime = performance.now();
 
@@ -182,7 +269,7 @@ function spin() {
 		} else {
 			spinning = false;
 			spinBtn.disabled = false;
-			showResult(MEALS[winnerIndex()]);
+			showResult(activeMeals()[winnerIndex()]);
 		}
 	}
 	requestAnimationFrame(frame);
@@ -210,6 +297,24 @@ function rainConfetti(emojis) {
 	}
 }
 
+function setCategory(cat) {
+	if (spinning || !CATEGORIES[cat]) return;
+	activeCat = cat;
+	try {
+		localStorage.setItem("dinnerSpinner.cat", cat);
+	} catch (e) {
+		/* play without saving */
+	}
+	[...tabBar.children].forEach((btn) =>
+		btn.classList.toggle("active", btn.dataset.cat === cat)
+	);
+	draw();
+}
+
+[...tabBar.children].forEach((btn) =>
+	btn.addEventListener("click", () => setCategory(btn.dataset.cat))
+);
+
 spinBtn.addEventListener("click", spin);
 canvas.addEventListener("click", spin);
 
@@ -231,4 +336,5 @@ document.getElementById("restart-btn").addEventListener("click", () => {
 });
 
 window.addEventListener("resize", sizeCanvas);
+setCategory(activeCat);
 sizeCanvas();
