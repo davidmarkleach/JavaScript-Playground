@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<link rel="stylesheet" href="dinner-spinner.css" />
+		<title>What Are We Eatin'?</title>
+	</head>
+	<body>
+		<header class="ds-header">
+			<a class="ds-home" href="index.html">&larr; Playground</a>
+			<h1>What Are We Eatin'? <span class="ds-nail">💅</span></h1>
+			<p class="ds-tagline">A dinner spinner for a certified gehls ghel.</p>
+		</header>
+
+		<main class="ds-main">
+			<div class="ds-wheel-wrap">
+				<div class="ds-pointer">▼</div>
+				<canvas id="wheel"></canvas>
+				<button id="spin-btn" class="ds-spin-btn">SPIN</button>
+			</div>
+			<p id="hint" class="ds-hint">Tap the wheel. The wheel knows.</p>
+		</main>
+
+		<!-- Result overlay -->
+		<div id="result-overlay" class="ds-overlay hidden">
+			<div class="ds-result-card">
+				<div id="result-emoji" class="ds-result-emoji"></div>
+				<p class="ds-result-kicker">Not for nothing&hellip; it's a</p>
+				<h2 id="result-name"></h2>
+				<p id="result-line" class="ds-result-line"></p>
+				<div class="ds-result-btns">
+					<button id="again-btn" class="ds-btn ds-btn-ghost">Spin again</button>
+					<button id="accept-btn" class="ds-btn ds-btn-primary">That's the one 💅</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Accepted overlay -->
+		<div id="accept-overlay" class="ds-overlay hidden">
+			<div class="ds-result-card">
+				<div class="ds-result-emoji">🇮🇹</div>
+				<h2 id="accept-title">Enjoy, bestie.</h2>
+				<p id="accept-line" class="ds-result-line"></p>
+				<div class="ds-result-btns">
+					<a class="ds-btn ds-btn-ghost" href="food-bedazzle.html">Bedazzle while you wait ✨</a>
+					<button id="restart-btn" class="ds-btn ds-btn-primary">Spin for tomorrow</button>
+				</div>
+			</div>
+		</div>
+
+		<script src="dinner-spinner.js"></script>
+	</body>
+</html>
