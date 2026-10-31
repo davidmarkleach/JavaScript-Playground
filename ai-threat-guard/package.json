@@ -1,0 +1,28 @@
+{
+  "name": "ai-threat-guard",
+  "version": "0.1.0",
+  "description": "AI-era threat scanner for Windows: prompt-injection files, LLM-powered malware droppers, leaked AI API keys, poisoned MCP/agent configs, fake AI browser extensions and AI-generated scam messages.",
+  "type": "module",
+  "bin": {
+    "atg": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test test/",
+    "bundle": "esbuild src/cli.js --bundle --platform=node --format=cjs --target=node22 --outfile=dist/atg.cjs",
+    "build:win": "npm run bundle && node scripts/build-sea.js",
+    "verdict-api": "node server/verdict-api.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "postject": "^1.0.0-alpha.6"
+  }
+}
